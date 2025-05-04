@@ -3,6 +3,7 @@ module github.com/Dionid/paasible
 go 1.23.2
 
 require (
+	github.com/fsnotify/fsnotify v1.8.0
 	github.com/google/uuid v1.6.0
 	github.com/pocketbase/dbx v1.11.0
 	github.com/pocketbase/pocketbase v0.26.6
@@ -11,7 +12,6 @@ require (
 )
 
 require (
-	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
