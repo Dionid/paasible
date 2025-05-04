@@ -2,6 +2,8 @@
 
 Cli and UI for `ansible` to run playbooks and store and search results in a local sqlite DB.
 
+[Paasible UI](./ui.png)
+
 # Setup
 
 1. Install `ansible-playbook`
