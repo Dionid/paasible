@@ -1,0 +1,14 @@
+---
+- name: Test playbook
+  hosts: target
+  become: yes
+  tasks:
+    - name: Ensure destination directories exist
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+      loop:
+        - "{{ destination }}"

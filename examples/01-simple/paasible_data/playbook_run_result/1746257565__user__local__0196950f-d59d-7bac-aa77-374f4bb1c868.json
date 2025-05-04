@@ -1,0 +1,12 @@
+{
+  "id": "0196950f-d59d-7bac-aa77-374f4bb1c868",
+  "created": "2025-05-03 07:32:45.085Z",
+  "updated": "2025-05-03 07:32:45.085Z",
+  "command": "/bin/ansible-playbook ./playbook.yml -vv -i inventory.ini",
+  "stdout": "...",
+  "stderr": "",
+  "error": "exit status 4",
+  "pwd": "/Users/dionid/paasible/examples/01-simple",
+  "repository_branch": "main",
+  "machine_id": "local"
+}
