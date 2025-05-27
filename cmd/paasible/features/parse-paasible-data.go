@@ -46,7 +46,7 @@ func ParsePaasibleData(
 	// parse them to paasible.PlaybookRunResult and insert into DB
 
 	// # Get all files in the folder
-	files, err := os.ReadDir(path.Join(rootFolderPath, paasible.DATA_RUN_RESULT_FOLDER_NAME))
+	files, err := os.ReadDir(path.Join(rootFolderPath, paasible.RUN_RESULT_FOLDER_NAME))
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func ParsePaasibleData(
 		}
 
 		// # Read file
-		filePath := path.Join(rootFolderPath, paasible.DATA_RUN_RESULT_FOLDER_NAME, file.Name())
+		filePath := path.Join(rootFolderPath, paasible.RUN_RESULT_FOLDER_NAME, file.Name())
 		err = UpsertPlaybookRunResult(app, filePath)
 		if err != nil {
 			return fmt.Errorf("ParsePaasibleData: %w", err)

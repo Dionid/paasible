@@ -93,7 +93,7 @@ func RunAndSave(
 
 	playbookRunResultFileName := path.Join(
 		paasibleDataFolderPath,
-		paasible.DATA_RUN_RESULT_FOLDER_NAME,
+		paasible.RUN_RESULT_FOLDER_NAME,
 		unixTimestampString+"__"+userId+"__"+machineId+"__"+playbookRunResult.Id+".json",
 	)
 	playbookRunResultFile, err := os.Create(playbookRunResultFileName)

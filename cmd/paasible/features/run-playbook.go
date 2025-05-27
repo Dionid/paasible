@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/Dionid/paasible/libs/paasible"
 	"github.com/pocketbase/dbx"
@@ -15,7 +16,7 @@ import (
 func InitRunPlaybookCmd(
 	app *pocketbase.PocketBase,
 	config *paasible.CliConfig,
-	paasibleDataFolderPath string,
+	paasibleRootFolderPath string,
 ) {
 	runPlaybookCmd := &cobra.Command{
 		Use:     "run",
@@ -59,6 +60,36 @@ func InitRunPlaybookCmd(
 			}
 
 			// # Create inventory
+			inventoriesPaths := make([]string, 0)
+
+			// ## From Playbook
+			if playbook.InventoriesPaths != "" {
+				splitedPaths := strings.Split(playbook.InventoriesPaths, ",")
+
+				for _, inventoryPath := range splitedPaths {
+					inventoryPath = strings.TrimSpace(inventoryPath)
+
+					if inventoryPath == "" {
+						continue
+					}
+
+					// # Check if the inventory file exists
+					fullInventoryPath := path.Join(
+						paasibleRootFolderPath,
+						paasible.PLAYBOOKS_FOLDER_NAME,
+						playbook.CodePath,
+						inventoryPath,
+					)
+
+					if _, err := os.Stat(fullInventoryPath); os.IsNotExist(err) {
+						log.Fatalf("Inventory file %s does not exist", fullInventoryPath)
+					}
+
+					inventoriesPaths = append(inventoriesPaths, fullInventoryPath)
+				}
+			}
+
+			// ## From Targets
 			playbookTargets := []paasible.PlaybookTarget{}
 
 			err = paasible.PlaybookTargetQuery(app).Where(dbx.HashExp{
@@ -68,95 +99,108 @@ func InitRunPlaybookCmd(
 				log.Fatalf("Failed to find targets for playbook with ID %s: %v", playbookId, err)
 			}
 
-			if len(playbookTargets) == 0 {
-				log.Fatalf("No targets found for playbook with ID %s", playbookId)
-			}
+			if len(playbookTargets) != 0 {
+				inventoryByGroup := make(map[string]string)
 
-			inventoryByGroup := make(map[string]string)
+				for _, playbookTarget := range playbookTargets {
+					target := paasible.Target{}
 
-			for _, playbookTarget := range playbookTargets {
-				target := paasible.Target{}
+					err = paasible.TargetQuery(app).Where(dbx.HashExp{
+						"id": playbookTarget.TargetId,
+					}).One(&target)
+					if err != nil {
+						log.Fatalf("Failed to find target with ID %s: %v", playbookTarget.TargetId, err)
+					}
 
-				err = paasible.TargetQuery(app).Where(dbx.HashExp{
-					"id": playbookTarget.TargetId,
-				}).One(&target)
-				if err != nil {
-					log.Fatalf("Failed to find target with ID %s: %v", playbookTarget.TargetId, err)
+					targetSshKey := paasible.TargetSshKey{}
+
+					err = paasible.TargetSshKeyQuery(app).Where(dbx.HashExp{
+						"target_id": target.Id,
+					}).One(&targetSshKey)
+					if err != nil {
+						log.Fatalf("Failed to find SSH key for target with ID %s: %v", target.Id, err)
+					}
+
+					sshKey := paasible.SshKey{}
+
+					err = paasible.SshKeyQuery(app).Where(dbx.HashExp{
+						"id": targetSshKey.SshKeyId,
+					}).One(&sshKey)
+					if err != nil {
+						log.Fatalf("Failed to find SSH key with ID %s: %v", targetSshKey.SshKeyId, err)
+					}
+
+					// # Create ssh file
+					pathToSshKey := path.Join(
+						paasibleRootFolderPath,
+						paasible.PLAYBOOKS_FOLDER_NAME,
+						playbook.CodePath,
+						fmt.Sprintf("%s_%s.ssh_key", target.Id, sshKey.Name),
+					)
+
+					// ## Create the SSH key file
+					err = os.WriteFile(pathToSshKey, []byte(sshKey.Private), 0600)
+					if err != nil {
+						log.Fatalf("Failed to write SSH key file: %v", err)
+					}
+
+					inventoryByGroup[playbookTarget.Group] = fmt.Sprintf(
+						`%s ansible_host=%s ansible_ssh_user=%s ansible_ssh_private_key_file=%s`,
+						playbook.Name,
+						target.Address,
+						playbookTarget.User,
+						pathToSshKey,
+					)
 				}
 
-				targetSshKey := paasible.TargetSshKey{}
+				inventoryContent := ""
 
-				err = paasible.TargetSshKeyQuery(app).Where(dbx.HashExp{
-					"target_id": target.Id,
-				}).One(&targetSshKey)
-				if err != nil {
-					log.Fatalf("Failed to find SSH key for target with ID %s: %v", target.Id, err)
+				for group, hosts := range inventoryByGroup {
+					inventoryContent += fmt.Sprintf("[%s]\n%s\n\n", group, hosts)
 				}
 
-				sshKey := paasible.SshKey{}
+				if inventoryContent != "" {
+					// # Create inventory file
+					inventoryFilePath := path.Join(
+						paasibleRootFolderPath,
+						paasible.PLAYBOOKS_FOLDER_NAME,
+						playbook.CodePath,
+						"generated_inventory.ini",
+					)
+					err = os.WriteFile(inventoryFilePath, []byte(inventoryContent), 0644)
+					if err != nil {
+						log.Fatalf("Failed to write inventory file: %v", err)
+					}
 
-				err = paasible.SshKeyQuery(app).Where(dbx.HashExp{
-					"id": targetSshKey.SshKeyId,
-				}).One(&sshKey)
-				if err != nil {
-					log.Fatalf("Failed to find SSH key with ID %s: %v", targetSshKey.SshKeyId, err)
+					inventoriesPaths = append(inventoriesPaths, inventoryFilePath)
 				}
-
-				// # Create ssh file
-				pathToSshKey := path.Join(
-					paasibleDataFolderPath,
-					paasible.DATA_PLAYBOOKS_FOLDER_NAME,
-					playbook.CodePath,
-					fmt.Sprintf("%s_%s.ssh_key", target.Id, sshKey.Name),
-				)
-
-				// ## Create the SSH key file
-				err = os.WriteFile(pathToSshKey, []byte(sshKey.Private), 0600)
-				if err != nil {
-					log.Fatalf("Failed to write SSH key file: %v", err)
-				}
-
-				inventoryByGroup[playbookTarget.Group] = fmt.Sprintf(
-					`%s ansible_host=%s ansible_ssh_user=%s ansible_ssh_private_key_file=%s`,
-					playbook.Name,
-					target.Address,
-					playbookTarget.User,
-					pathToSshKey,
-				)
-			}
-
-			inventory := ""
-
-			for group, hosts := range inventoryByGroup {
-				inventory += fmt.Sprintf("[%s]\n%s\n\n", group, hosts)
-			}
-
-			// # Create inventory file
-			inventoryFilePath := path.Join(
-				paasibleDataFolderPath,
-				paasible.DATA_PLAYBOOKS_FOLDER_NAME,
-				playbook.CodePath,
-				"inventory.ini",
-			)
-			err = os.WriteFile(inventoryFilePath, []byte(inventory), 0644)
-			if err != nil {
-				log.Fatalf("Failed to write inventory file: %v", err)
 			}
 
 			// # Create ansible-playbook command
-			ansiblePlaybookArgs := []string{
-				"-i", inventoryFilePath,
+			ansiblePlaybookArgs := []string{}
+
+			// # Inventories
+			for _, inventoryPath := range inventoriesPaths {
+				ansiblePlaybookArgs = append(
+					ansiblePlaybookArgs,
+					"-i", inventoryPath,
+				)
+			}
+
+			// # Playbook path
+			ansiblePlaybookArgs = append(
+				ansiblePlaybookArgs,
 				path.Join(
-					paasibleDataFolderPath,
-					paasible.DATA_PLAYBOOKS_FOLDER_NAME,
+					paasibleRootFolderPath,
+					paasible.PLAYBOOKS_FOLDER_NAME,
 					playbook.CodePath,
 					playbook.Path,
 				),
-			}
+			)
 
 			err = RunAndSave(
 				currentFolderPath,
-				paasibleDataFolderPath,
+				paasibleRootFolderPath,
 				ansiblePlaybookArgs,
 				machineId,
 				userId,
