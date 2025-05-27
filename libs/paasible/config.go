@@ -10,7 +10,7 @@ type CliConfig struct {
 
 func CliConfigYaml() string {
 	return `paasible:
-  cli_version: 0.0.1
+  cli_version: 0.0.2
 `
 }
 

@@ -33,10 +33,14 @@ dist/
 inventory.ini
 inventory.*.ini
 !inventory.example.ini
+.ansible
 
 # Pocketbase
 pb_data
 
 # Paasible
-cmd/paasible/paasible_data
+cmd/paasible/paasible
 cmd/paasible/paasible.yaml
+
+# Examples
+examples/**/data
