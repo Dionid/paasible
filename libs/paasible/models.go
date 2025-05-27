@@ -22,6 +22,9 @@ type RunResult struct {
 	RepositoryBranch string         `json:"repository_branch" db:"repository_branch"`
 	MachineId        string         `json:"machine_id" db:"machine_id"`
 	UserId           string         `json:"user_id" db:"user_id"`
+
+	TargetId      string `json:"target_id" db:"target_id"`           // the target where the command was run
+	ApplicationId string `json:"application_id" db:"application_id"` // the application where the command was run
 }
 
 func (t RunResult) TableName() string {
