@@ -120,6 +120,33 @@ func TargetSshKeyModel(app *pocketbase.PocketBase, entity *SshKey) *dbx.ModelQue
 
 // ---
 
+var _ core.Model = (*Project)(nil)
+
+type Project struct {
+	core.BaseModel
+
+	Created types.DateTime `json:"created" db:"created"`
+	Updated types.DateTime `json:"updated" db:"updated"`
+
+	Name       string `json:"name" db:"name"`
+	Path       string `json:"path" db:"path"`
+	Repository string `json:"origin_repository" db:"origin_repository"`
+}
+
+func (r Project) TableName() string {
+	return "project"
+}
+
+func ProjectQuery(app *pocketbase.PocketBase) *dbx.SelectQuery {
+	return app.RecordQuery(Project{}.TableName())
+}
+
+func ProjectModel(app *pocketbase.PocketBase, entity *SshKey) *dbx.ModelQuery {
+	return app.DB().Model(entity)
+}
+
+// ---
+
 var _ core.Model = (*Playbook)(nil)
 
 type Playbook struct {
@@ -130,8 +157,7 @@ type Playbook struct {
 
 	Name             string `json:"name" db:"name"`
 	Path             string `json:"path" db:"path"`
-	CodePath         string `json:"code_path" db:"code_path"`
-	OriginRepository string `json:"origin_repository" db:"origin_repository"`
+	ProjectId        string `json:"project_id" db:"project_id"`               // the project this playbook belongs to
 	InventoriesPaths string `json:"inventories_paths" db:"inventories_paths"` // comma-separated paths to inventory files
 }
 

@@ -59,6 +59,16 @@ func InitRunPlaybookCmd(
 				log.Fatalf("Failed to find playbook with ID %s: %v", args[0], err)
 			}
 
+			// # Get playbook project
+			project := paasible.Project{}
+
+			err = paasible.ProjectQuery(app).Where(dbx.HashExp{
+				"id": playbook.ProjectId,
+			}).One(&project)
+			if err != nil {
+				log.Fatalf("Failed to find project with ID %s: %v", playbook.ProjectId, err)
+			}
+
 			// # Create inventory
 			inventoriesPaths := make([]string, 0)
 
@@ -76,8 +86,8 @@ func InitRunPlaybookCmd(
 					// # Check if the inventory file exists
 					fullInventoryPath := path.Join(
 						paasibleRootFolderPath,
-						paasible.PLAYBOOKS_FOLDER_NAME,
-						playbook.CodePath,
+						paasible.PROJECTS_FOLDER_NAME,
+						project.Path,
 						inventoryPath,
 					)
 
@@ -133,8 +143,8 @@ func InitRunPlaybookCmd(
 					// # Create ssh file
 					pathToSshKey := path.Join(
 						paasibleRootFolderPath,
-						paasible.PLAYBOOKS_FOLDER_NAME,
-						playbook.CodePath,
+						paasible.PROJECTS_FOLDER_NAME,
+						project.Path,
 						fmt.Sprintf("%s_%s.ssh_key", target.Id, sshKey.Name),
 					)
 
@@ -163,8 +173,8 @@ func InitRunPlaybookCmd(
 					// # Create inventory file
 					inventoryFilePath := path.Join(
 						paasibleRootFolderPath,
-						paasible.PLAYBOOKS_FOLDER_NAME,
-						playbook.CodePath,
+						paasible.PROJECTS_FOLDER_NAME,
+						project.Path,
 						"generated_inventory.ini",
 					)
 					err = os.WriteFile(inventoryFilePath, []byte(inventoryContent), 0644)
@@ -192,8 +202,8 @@ func InitRunPlaybookCmd(
 				ansiblePlaybookArgs,
 				path.Join(
 					paasibleRootFolderPath,
-					paasible.PLAYBOOKS_FOLDER_NAME,
-					playbook.CodePath,
+					paasible.PROJECTS_FOLDER_NAME,
+					project.Path,
 					playbook.Path,
 				),
 			)
