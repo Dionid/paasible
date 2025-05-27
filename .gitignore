@@ -43,4 +43,4 @@ cmd/paasible/paasible
 cmd/paasible/paasible.yaml
 
 # Examples
-examples/**/data
+examples/**/db
