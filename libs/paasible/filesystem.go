@@ -7,8 +7,8 @@ import (
 )
 
 var DATA_FOLDER_NAME = "paasible_data"
-var DATA_PLAYBOOK_RUN_RESULT_FOLDER_NAME = "playbook_run_result"
-var DATA_PLAYBOOK_RUN_RESULT_FOLDER_PATH = path.Join(DATA_FOLDER_NAME, DATA_PLAYBOOK_RUN_RESULT_FOLDER_NAME)
+var DATA_RUN_RESULT_FOLDER_NAME = "run_result"
+var DATA_RUN_RESULT_FOLDER_PATH = path.Join(DATA_FOLDER_NAME, DATA_RUN_RESULT_FOLDER_NAME)
 
 func CreateDataFolder(
 	folderPath string,
@@ -22,12 +22,12 @@ func CreateDataFolder(
 		}
 	}
 
-	// ## Create paasible_data/playbook_run_result folder if not exists
-	playbookRunResultFolder := path.Join(folderPath, DATA_PLAYBOOK_RUN_RESULT_FOLDER_PATH)
+	// ## Create paasible_data/run_result folder if not exists
+	playbookRunResultFolder := path.Join(folderPath, DATA_RUN_RESULT_FOLDER_PATH)
 	if _, err := os.Stat(playbookRunResultFolder); os.IsNotExist(err) {
 		err = os.Mkdir(playbookRunResultFolder, os.ModePerm)
 		if err != nil {
-			return fmt.Errorf("Error creating paasible_data/playbook_run_result folder: %w", err)
+			return fmt.Errorf("Error creating paasible_data/run_result folder: %w", err)
 		}
 	}
 

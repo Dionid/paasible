@@ -63,7 +63,7 @@ func InitAnsiblePlaybookCmd(
 			}
 
 			// # Create new TaskRunResult
-			playbookRunResult := paasible.PlaybookRunResult{
+			playbookRunResult := paasible.RunResult{
 				BaseModel: core.BaseModel{
 					Id: uuidv7.NewE().String(),
 				},
@@ -123,7 +123,7 @@ func InitAnsiblePlaybookCmd(
 			unixTimestampString := strconv.FormatInt(playbookRunResult.Created.Time().Unix(), 10)
 
 			playbookRunResultFileName := path.Join(
-				paasible.DATA_PLAYBOOK_RUN_RESULT_FOLDER_PATH,
+				paasible.DATA_RUN_RESULT_FOLDER_PATH,
 				unixTimestampString+"__"+config.User+"__"+config.Machine+"__"+playbookRunResult.Id+".json",
 			)
 			playbookRunResultFile, err := os.Create(playbookRunResultFileName)

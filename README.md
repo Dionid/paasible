@@ -36,7 +36,7 @@ Cli and UI for `ansible` to run playbooks and store and search results in a loca
 1. You use this `.json` files as history of runs or you can use UI for that
 1. To use UI just do `paasible serve`, it will open admin page in your browser and you must create
 first admin user.
-1. After that go to `http://localhost:PORT/_/` into `playbook_run_result` table and you will see all playbooks that were runned and can filter by any field
+1. After that go to `http://localhost:PORT/_/` into `run_result` table and you will see all playbooks that were runned and can filter by any field
 
 # Dictionary
 

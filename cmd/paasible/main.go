@@ -159,7 +159,7 @@ func main() {
 
 	// out of the box fsnotify can watch a single file, or a single directory
 	if err := watcher.Add(
-		path.Join(currentFolder, paasibleConfig.DataFolderRelativePath, paasible.DATA_PLAYBOOK_RUN_RESULT_FOLDER_NAME),
+		path.Join(currentFolder, paasibleConfig.DataFolderRelativePath, paasible.DATA_RUN_RESULT_FOLDER_NAME),
 	); err != nil {
 		log.Fatal("Can't add file watcher", err)
 	}

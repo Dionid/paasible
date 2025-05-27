@@ -43,7 +43,7 @@ export type PaasiblePB = PocketBase & {
   collection(idOrName: "repository"): RecordService<Repository>;
   collection(idOrName: "machine"): RecordService<Machine>;
   collection(idOrName: "playbook"): RecordService<Playbook>;
-  collection(idOrName: "playbook_run_result"): RecordService<PlaybookRunResult>;
+  collection(idOrName: "run_result"): RecordService<PlaybookRunResult>;
 };
 
 export const PocketBaseContext = createContext<PocketBase>({} as PocketBase);
