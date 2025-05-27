@@ -77,7 +77,7 @@ func main() {
 
 	// # Pocketbase
 	app := pocketbase.NewWithConfig(pocketbase.Config{
-		DefaultDataDir: path.Join(paasibleDataFolderPath, "/db"),
+		DefaultDataDir: path.Join(paasibleDataFolderPath, "db"),
 	})
 
 	// # Migrations

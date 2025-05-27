@@ -86,7 +86,6 @@ func InitRunPlaybookCmd(
 					// # Check if the inventory file exists
 					fullInventoryPath := path.Join(
 						paasibleRootFolderPath,
-						paasible.PROJECTS_FOLDER_NAME,
 						project.Path,
 						inventoryPath,
 					)
@@ -143,7 +142,6 @@ func InitRunPlaybookCmd(
 					// # Create ssh file
 					pathToSshKey := path.Join(
 						paasibleRootFolderPath,
-						paasible.PROJECTS_FOLDER_NAME,
 						project.Path,
 						fmt.Sprintf("%s_%s.ssh_key", target.Id, sshKey.Name),
 					)
@@ -173,7 +171,6 @@ func InitRunPlaybookCmd(
 					// # Create inventory file
 					inventoryFilePath := path.Join(
 						paasibleRootFolderPath,
-						paasible.PROJECTS_FOLDER_NAME,
 						project.Path,
 						"generated_inventory.ini",
 					)
@@ -202,7 +199,6 @@ func InitRunPlaybookCmd(
 				ansiblePlaybookArgs,
 				path.Join(
 					paasibleRootFolderPath,
-					paasible.PROJECTS_FOLDER_NAME,
 					project.Path,
 					playbook.Path,
 				),
