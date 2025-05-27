@@ -1,4 +1,2 @@
 paasible:
   cli_version: 0.0.1
-  project_name: "first_simple_project"
-  data_folder: "paasible_data"

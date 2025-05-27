@@ -6,7 +6,6 @@ import (
 	"path"
 )
 
-var DATA_FOLDER_NAME = "paasible_data"
 var DATA_RUN_RESULT_FOLDER_NAME = "run_result"
 var DATA_APPLICATIONS_FOLDER_NAME = "applications"
 

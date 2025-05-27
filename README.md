@@ -15,9 +15,8 @@ Cli and UI for `ansible` to run playbooks and store and search results in a loca
     1. `PAASIBLE_USER` – user from whom will playbook be runned
     1. `PAASIBLE_MACHINE` – machine where playbook will be runned
 1. Configure `paasible.yaml`:
-    1. `project_name` – must be unique project name
-    1. `data_folder` – where Paasible will store data
     1. `cli_version` – version of Paasible CLI
+    1. `data_folder` – where Paasible will store data (default is current folder)
 1. Edit `.gitignore`:
     1. Add `paasible.env`
     1. Add `data_folder/pb_data` (this folder is for local sqlite DB for UI and must be unqiue per machine)

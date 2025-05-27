@@ -58,7 +58,6 @@ func main() {
 		Machine:                envConfig.Machine,
 		User:                   envConfig.User,
 		CliVersion:             yamlConfig.Paasible.CliVersion,
-		ProjectName:            yamlConfig.Paasible.ProjectName,
 		DataFolderRelativePath: yamlConfig.Paasible.DataFolderRelativePath,
 	}
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Dionid/paasible/libs/paasible"
 	"github.com/spf13/viper"
 )
 
@@ -18,7 +17,6 @@ type EnvConfig struct {
 
 type YamlConfigPaasible struct {
 	CliVersion             string `mapstructure:"cli_version"`
-	ProjectName            string `mapstructure:"project_name"`
 	DataFolderRelativePath string `mapstructure:"data_folder"`
 }
 
@@ -93,10 +91,6 @@ func initConfig(
 	// ## Viper unmarshals the loaded env varialbes into the struct
 	if err := yamlConfigViper.Unmarshal(yamlConfig); err != nil {
 		return nil, nil, err
-	}
-
-	if yamlConfig.Paasible.DataFolderRelativePath == "" {
-		yamlConfig.Paasible.DataFolderRelativePath = paasible.DATA_FOLDER_NAME
 	}
 
 	return envConfig, yamlConfig, nil

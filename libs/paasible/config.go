@@ -5,15 +5,12 @@ type CliConfig struct {
 	Machine string
 
 	CliVersion             string
-	ProjectName            string
 	DataFolderRelativePath string
 }
 
 func CliConfigYaml() string {
 	return `paasible:
   cli_version: 0.0.1
-  project_name: "Default"
-  data_folder: "paasible_data"
 `
 }
 
