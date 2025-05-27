@@ -36,81 +36,82 @@ func PlaybookRunResultModel(app *pocketbase.PocketBase, entity *PlaybookRunResul
 	return app.DB().Model(entity)
 }
 
-// ALL CODE TILL THE END OF THE FILE IS FOR FUTURE VERSIONS
-
 // ---
 
-var _ core.Model = (*Repository)(nil)
+var _ core.Model = (*SshKey)(nil)
 
-type Repository struct {
-	core.BaseModel
-
-	Created  types.DateTime `json:"created" db:"created"`
-	Updated  types.DateTime `json:"updated" db:"updated"`
-	Remote   string         `json:"remote" db:"remote"`
-	TopLevel string         `json:"top_level" db:"top_level"`
-}
-
-func (r Repository) TableName() string {
-	return "repository"
-}
-
-func RepositoryQuery(app *pocketbase.PocketBase) *dbx.SelectQuery {
-	return app.RecordQuery(Repository{}.TableName())
-}
-
-func RepositoryModel(app *pocketbase.PocketBase, entity *Repository) *dbx.ModelQuery {
-	return app.DB().Model(entity)
-}
-
-// ---
-
-var _ core.Model = (*Playbook)(nil)
-
-type Playbook struct {
-	core.BaseModel
-
-	Created      types.DateTime `json:"created" db:"created"`
-	Updated      types.DateTime `json:"updated" db:"updated"`
-	Name         string         `json:"name" db:"name"`
-	Path         string         `json:"path" db:"path"`
-	Content      string         `json:"content" db:"content"`
-	RepositoryId string         `json:"repository_id" db:"repository_id"`
-}
-
-func (r Playbook) TableName() string {
-	return "playbook"
-}
-
-func PlaybookQuery(app *pocketbase.PocketBase) *dbx.SelectQuery {
-	return app.RecordQuery(Playbook{}.TableName())
-}
-
-func PlaybookModel(app *pocketbase.PocketBase, entity *Playbook) *dbx.ModelQuery {
-	return app.DB().Model(entity)
-}
-
-// ---
-
-var _ core.Model = (*Machine)(nil)
-
-type Machine struct {
+type SshKey struct {
 	core.BaseModel
 
 	Created types.DateTime `json:"created" db:"created"`
 	Updated types.DateTime `json:"updated" db:"updated"`
-	Name    string         `json:"name" db:"name"`
-	Current bool           `json:"current" db:"current"`
+
+	Name    string `json:"name" db:"name"`
+	Public  string `json:"public" db:"public"`
+	Private string `json:"private" db:"private"`
 }
 
-func (r Machine) TableName() string {
-	return "machine"
+func (r SshKey) TableName() string {
+	return "ssh_key"
 }
 
-func MachineQuery(app *pocketbase.PocketBase) *dbx.SelectQuery {
-	return app.RecordQuery(Machine{}.TableName())
+func SshKeyQuery(app *pocketbase.PocketBase) *dbx.SelectQuery {
+	return app.RecordQuery(SshKey{}.TableName())
 }
 
-func MachineModel(app *pocketbase.PocketBase, entity *Machine) *dbx.ModelQuery {
+func SshKeyModel(app *pocketbase.PocketBase, entity *SshKey) *dbx.ModelQuery {
+	return app.DB().Model(entity)
+}
+
+// ---
+
+var _ core.Model = (*Target)(nil)
+
+type Target struct {
+	core.BaseModel
+
+	Created types.DateTime `json:"created" db:"created"`
+	Updated types.DateTime `json:"updated" db:"updated"`
+
+	Name    string `json:"name" db:"name"`
+	Address string `json:"address" db:"address"`
+	Type    string `json:"type" db:"type"` // e.g. "ssh", "docker", etc.
+}
+
+func (r Target) TableName() string {
+	return "target"
+}
+
+func TargetQuery(app *pocketbase.PocketBase) *dbx.SelectQuery {
+	return app.RecordQuery(Target{}.TableName())
+}
+
+func TargetModel(app *pocketbase.PocketBase, entity *Target) *dbx.ModelQuery {
+	return app.DB().Model(entity)
+}
+
+// ---
+
+var _ core.Model = (*TargetSshKey)(nil)
+
+type TargetSshKey struct {
+	core.BaseModel
+
+	Created types.DateTime `json:"created" db:"created"`
+	Updated types.DateTime `json:"updated" db:"updated"`
+
+	SshKeyId string `json:"ssh_key_id" db:"ssh_key_id"`
+	TargetId string `json:"target_id" db:"target_id"`
+}
+
+func (r TargetSshKey) TableName() string {
+	return "target_ssh_key"
+}
+
+func TargetSshKeyQuery(app *pocketbase.PocketBase) *dbx.SelectQuery {
+	return app.RecordQuery(TargetSshKey{}.TableName())
+}
+
+func TargetSshKeyModel(app *pocketbase.PocketBase, entity *SshKey) *dbx.ModelQuery {
 	return app.DB().Model(entity)
 }
