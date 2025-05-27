@@ -120,39 +120,15 @@ func TargetSshKeyModel(app *pocketbase.PocketBase, entity *SshKey) *dbx.ModelQue
 
 // ---
 
-var _ core.Model = (*ApplicationTemplate)(nil)
-
-type ApplicationTemplate struct {
-	core.BaseModel
-
-	Name         string `json:"name" db:"name"`
-	Repository   string `json:"repository" db:"repository"`
-	PlaybookPath string `json:"playbook_path" db:"playbook_path"`
-}
-
-func (r ApplicationTemplate) TableName() string {
-	return "application_template"
-}
-
-func ApplicationTemplateQuery(app *pocketbase.PocketBase) *dbx.SelectQuery {
-	return app.RecordQuery(ApplicationTemplate{}.TableName())
-}
-
-func ApplicationTemplateModel(app *pocketbase.PocketBase, entity *SshKey) *dbx.ModelQuery {
-	return app.DB().Model(entity)
-}
-
-// ---
-
 var _ core.Model = (*Application)(nil)
 
 type Application struct {
 	core.BaseModel
 
-	Name         string `json:"name" db:"name"`
-	TemplateId   string `json:"template_id" db:"template_id"`
-	Path         string `json:"path" db:"path"`
-	PlaybookPath string `json:"playbook_path" db:"playbook_path"`
+	Name             string `json:"name" db:"name"`
+	Path             string `json:"path" db:"path"`
+	PlaybookPath     string `json:"playbook_path" db:"playbook_path"`
+	OriginRepository string `json:"origin_repository" db:"origin_repository"`
 }
 
 func (r Application) TableName() string {
