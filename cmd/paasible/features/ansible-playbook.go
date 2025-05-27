@@ -3,6 +3,7 @@ package features
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -19,9 +20,105 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func RunAndSave(
+	currentFolderPath string,
+	paasibleDataFolderPath string,
+	args []string,
+	machineId string,
+	userId string,
+	applicationId string,
+) error {
+	// # Create new TaskRunResult
+	playbookRunResult := paasible.RunResult{
+		BaseModel: core.BaseModel{
+			Id: uuidv7.NewE().String(),
+		},
+		Created:       types.NowDateTime(),
+		Updated:       types.NowDateTime(),
+		Pwd:           currentFolderPath,
+		MachineId:     machineId,
+		UserId:        userId,
+		ApplicationId: applicationId,
+	}
+
+	// ## Check branch
+	gitBranchResult := paasible.ExecGitCommand(
+		exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD"),
+		currentFolderPath,
+	)
+	if gitBranchResult.Error == nil {
+		playbookRunResult.RepositoryBranch = gitBranchResult.Stdout
+	}
+
+	// # Run ansible-playbook
+	command := exec.Command("ansible-playbook", args...)
+
+	playbookRunResult.Command = command.String()
+
+	// ## Add to std out
+	var stdoutBuf, stderrBuf bytes.Buffer
+
+	command.Stdout = io.MultiWriter(&stdoutBuf, os.Stdout)
+	command.Stderr = io.MultiWriter(&stderrBuf, os.Stderr)
+
+	// Run the command
+	err := command.Run()
+	if err != nil {
+		playbookRunResult.Error = err.Error()
+		log.Println("Error running ansible-playbook:", err)
+	}
+
+	// # Add to std out
+	playbookRunResult.Stdout = stdoutBuf.String()
+	playbookRunResult.Stderr = stderrBuf.String()
+
+	// # Create new TaskRunResult json
+
+	// ## Marshal
+	playbookRunResultJson, err := json.MarshalIndent(playbookRunResult, "", "  ")
+	if err != nil {
+		return fmt.Errorf("Error marshaling playbookRunResult to json: %w", err)
+	}
+
+	// ## Create paasible_data folder if not exists
+	err = paasible.CreateDataFolder(
+		paasibleDataFolderPath,
+	)
+	if err != nil {
+		return fmt.Errorf("Error creating data folder: %w", err)
+	}
+
+	// ## Write playbookRunResult to file
+	unixTimestampString := strconv.FormatInt(playbookRunResult.Created.Time().Unix(), 10)
+
+	playbookRunResultFileName := path.Join(
+		paasibleDataFolderPath,
+		paasible.DATA_RUN_RESULT_FOLDER_NAME,
+		unixTimestampString+"__"+userId+"__"+machineId+"__"+playbookRunResult.Id+".json",
+	)
+	playbookRunResultFile, err := os.Create(playbookRunResultFileName)
+	if err != nil {
+		return fmt.Errorf("Error creating playbookRunResult file: %w", err)
+	}
+	defer playbookRunResultFile.Close()
+
+	// # Write playbookRunResult to file
+	_, err = playbookRunResultFile.Write(playbookRunResultJson)
+	if err != nil {
+		return fmt.Errorf("Error writing playbookRunResult to file: %w", err)
+	}
+
+	if playbookRunResult.Error != "" {
+		return fmt.Errorf(playbookRunResult.Error)
+	}
+
+	return nil
+}
+
 func InitAnsiblePlaybookCmd(
 	app *pocketbase.PocketBase,
 	config *paasible.CliConfig,
+	paasibleDataFolderPath string,
 ) {
 	ansiblePlaybookCmd := &cobra.Command{
 		Use:     "ansible-playbook",
@@ -62,91 +159,16 @@ func InitAnsiblePlaybookCmd(
 				log.Fatal("Can't find user id in config file!")
 			}
 
-			// # Create new TaskRunResult
-			playbookRunResult := paasible.RunResult{
-				BaseModel: core.BaseModel{
-					Id: uuidv7.NewE().String(),
-				},
-				Created:   types.NowDateTime(),
-				Updated:   types.NowDateTime(),
-				Pwd:       currentFolderPath,
-				MachineId: machineId,
-				UserId:    userId,
-			}
-
-			// ## Check branch
-			gitBranchResult := paasible.ExecGitCommand(
-				exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD"),
+			err = RunAndSave(
 				currentFolderPath,
+				paasibleDataFolderPath,
+				args,
+				machineId,
+				userId,
+				"",
 			)
-			if gitBranchResult.Error == nil {
-				playbookRunResult.RepositoryBranch = gitBranchResult.Stdout
-			}
-
-			// # Run ansible-playbook
-			command := exec.Command("ansible-playbook", args...)
-
-			playbookRunResult.Command = command.String()
-
-			// ## Add to std out
-			var stdoutBuf, stderrBuf bytes.Buffer
-
-			command.Stdout = io.MultiWriter(&stdoutBuf, os.Stdout)
-			command.Stderr = io.MultiWriter(&stderrBuf, os.Stderr)
-
-			// Run the command
-			err = command.Run()
 			if err != nil {
-				playbookRunResult.Error = err.Error()
-				log.Println("Error running ansible-playbook:", err)
-			}
-
-			// # Add to std out
-			playbookRunResult.Stdout = stdoutBuf.String()
-			playbookRunResult.Stderr = stderrBuf.String()
-
-			// # Create new TaskRunResult json
-
-			// ## Marshal
-			playbookRunResultJson, err := json.MarshalIndent(playbookRunResult, "", "  ")
-			if err != nil {
-				log.Fatal("Error marshaling playbookRunResult to json:", err)
-			}
-
-			// ## Create paasible_data folder if not exists
-			err = paasible.CreateDataFolder(currentFolderPath)
-			if err != nil {
-				log.Fatal("Error creating data folder: ", err)
-			}
-
-			// ## Write playbookRunResult to file
-			unixTimestampString := strconv.FormatInt(playbookRunResult.Created.Time().Unix(), 10)
-
-			playbookRunResultFileName := path.Join(
-				paasible.DATA_RUN_RESULT_FOLDER_PATH,
-				unixTimestampString+"__"+config.User+"__"+config.Machine+"__"+playbookRunResult.Id+".json",
-			)
-			playbookRunResultFile, err := os.Create(playbookRunResultFileName)
-			if err != nil {
-				log.Fatal("Error creating playbookRunResult file:", err)
-			}
-			defer playbookRunResultFile.Close()
-
-			// # Write playbookRunResult to file
-			_, err = playbookRunResultFile.Write(playbookRunResultJson)
-			if err != nil {
-				log.Fatal("Error writing playbookRunResult to file:", err)
-			}
-
-			// // # Insert new TaskRunResult in DB
-			// err = paasible.TaskRunResultModel(app, &playbookRunResult).Insert()
-			// if err != nil {
-			// 	log.Println("Error inserting TaskRunResult:", err)
-			// 	return
-			// }
-
-			if playbookRunResult.Error != "" {
-				log.Fatal(playbookRunResult.Error)
+				log.Fatalf("Error running ansible-playbook: %v", err)
 			}
 
 			// # Print the result

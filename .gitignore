@@ -34,7 +34,9 @@ inventory.ini
 inventory.*.ini
 !inventory.example.ini
 
-# Paasible
+# Pocketbase
 pb_data
-cmd/paasible/paasible
+
+# Paasible
 cmd/paasible/paasible_data
+cmd/paasible/paasible.yaml

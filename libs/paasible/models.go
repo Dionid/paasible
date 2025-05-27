@@ -23,7 +23,6 @@ type RunResult struct {
 	MachineId        string         `json:"machine_id" db:"machine_id"`
 	UserId           string         `json:"user_id" db:"user_id"`
 
-	TargetId      string `json:"target_id" db:"target_id"`           // the target where the command was run
 	ApplicationId string `json:"application_id" db:"application_id"` // the application where the command was run
 }
 
@@ -126,8 +125,9 @@ var _ core.Model = (*ApplicationTemplate)(nil)
 type ApplicationTemplate struct {
 	core.BaseModel
 
-	Name       string `json:"name" db:"name"`
-	Repository string `json:"repository" db:"repository"`
+	Name         string `json:"name" db:"name"`
+	Repository   string `json:"repository" db:"repository"`
+	PlaybookPath string `json:"playbook_path" db:"playbook_path"`
 }
 
 func (r ApplicationTemplate) TableName() string {
@@ -149,9 +149,10 @@ var _ core.Model = (*Application)(nil)
 type Application struct {
 	core.BaseModel
 
-	Name       string `json:"name" db:"name"`
-	TemplateId string `json:"template_id" db:"template_id"`
-	Path       string `json:"path" db:"path"`
+	Name         string `json:"name" db:"name"`
+	TemplateId   string `json:"template_id" db:"template_id"`
+	Path         string `json:"path" db:"path"`
+	PlaybookPath string `json:"playbook_path" db:"playbook_path"`
 }
 
 func (r Application) TableName() string {
@@ -175,6 +176,8 @@ type ApplicationTarget struct {
 
 	Created       types.DateTime `json:"created" db:"created"`
 	Updated       types.DateTime `json:"updated" db:"updated"`
+	Name          string         `json:"name" db:"name"`
+	User          string         `json:"user" db:"user"`
 	ApplicationId string         `json:"application_id" db:"application_id"`
 	TargetId      string         `json:"target_id" db:"target_id"`
 }

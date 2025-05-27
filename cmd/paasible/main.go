@@ -62,9 +62,15 @@ func main() {
 		DataFolderRelativePath: yamlConfig.Paasible.DataFolderRelativePath,
 	}
 
+	// # Paasible data folder path
+	paasibleDataFolderPath := path.Join(
+		currentFolder,
+		paasibleConfig.DataFolderRelativePath,
+	)
+
 	// # Create data folder
 	err = paasible.CreateDataFolder(
-		currentFolder,
+		paasibleDataFolderPath,
 	)
 	if err != nil {
 		log.Fatal("Can't create paasible directory: ", err)
@@ -72,7 +78,7 @@ func main() {
 
 	// # Pocketbase
 	app := pocketbase.NewWithConfig(pocketbase.Config{
-		DefaultDataDir: path.Join(currentFolder, paasibleConfig.DataFolderRelativePath, "/pb_data"),
+		DefaultDataDir: path.Join(paasibleDataFolderPath, "/pb_data"),
 	})
 
 	// # Migrations
@@ -87,6 +93,13 @@ func main() {
 	features.InitAnsiblePlaybookCmd(
 		app,
 		&paasibleConfig,
+		paasibleDataFolderPath,
+	)
+
+	features.InitRunAppilcationCmd(
+		app,
+		&paasibleConfig,
+		paasibleDataFolderPath,
 	)
 
 	features.InitInitCmd(
