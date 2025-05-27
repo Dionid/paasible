@@ -1,5 +1,5 @@
 run:
-	go run ../../cmd/paasible/. ansible-playbook ./applications/simple/playbook.yml -- -vv -i ./applications/simple/inventory.ini
+	go run ../../cmd/paasible/. ansible-playbook ./playbooks/simple/playbook.yml -- -vv -i ./playbooks/simple/inventory.ini
 
 ui:
 	go run ../../cmd/paasible/. serve

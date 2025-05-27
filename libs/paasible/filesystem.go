@@ -7,7 +7,7 @@ import (
 )
 
 var DATA_RUN_RESULT_FOLDER_NAME = "run_result"
-var DATA_APPLICATIONS_FOLDER_NAME = "applications"
+var DATA_PLAYBOOKS_FOLDER_NAME = "playbooks"
 
 func CreateDataFolder(
 	paasibleDataFolder string,

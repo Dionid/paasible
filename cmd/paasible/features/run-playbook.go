@@ -12,16 +12,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func InitRunAppilcationCmd(
+func InitRunPlaybookCmd(
 	app *pocketbase.PocketBase,
 	config *paasible.CliConfig,
 	paasibleDataFolderPath string,
 ) {
-	runApplicationCmd := &cobra.Command{
+	runPlaybookCmd := &cobra.Command{
 		Use:     "run",
-		Short:   "Run application",
-		Long:    "Run application with the given arguments",
-		Example: "run --id <application_id>",
+		Short:   "Run playbook",
+		Long:    "Run playbook with the given arguments",
+		Example: "run --id <playbook_id>",
 		Run: func(cmd *cobra.Command, args []string) {
 			// # Current folder path
 			currentFolderPath, err := os.Getwd()
@@ -42,46 +42,46 @@ func InitRunAppilcationCmd(
 				log.Fatal("Can't find user id in config file!")
 			}
 
-			// # Get the application ID from the command line arguments
-			applicationId, err := cmd.Flags().GetString("id")
+			// # Get the playbook ID from the command line arguments
+			playbookId, err := cmd.Flags().GetString("id")
 			if err != nil {
-				log.Fatalf("Failed to get application ID: %v", err)
+				log.Fatalf("Failed to get playbook ID: %v", err)
 			}
 
-			// # Get the application from the database
-			application := paasible.Application{}
+			// # Get the playbook from the database
+			playbook := paasible.Playbook{}
 
-			err = paasible.ApplicationQuery(app).Where(dbx.HashExp{
-				"id": applicationId,
-			}).One(&application)
+			err = paasible.PlaybookQuery(app).Where(dbx.HashExp{
+				"id": playbookId,
+			}).One(&playbook)
 			if err != nil {
-				log.Fatalf("Failed to find application with ID %s: %v", args[0], err)
+				log.Fatalf("Failed to find playbook with ID %s: %v", args[0], err)
 			}
 
 			// # Create inventory
-			applicationTargets := []paasible.ApplicationTarget{}
+			playbookTargets := []paasible.PlaybookTarget{}
 
-			err = paasible.ApplicationTargetQuery(app).Where(dbx.HashExp{
-				"application_id": applicationId,
-			}).All(&applicationTargets)
+			err = paasible.PlaybookTargetQuery(app).Where(dbx.HashExp{
+				"playbook_id": playbookId,
+			}).All(&playbookTargets)
 			if err != nil {
-				log.Fatalf("Failed to find targets for application with ID %s: %v", applicationId, err)
+				log.Fatalf("Failed to find targets for playbook with ID %s: %v", playbookId, err)
 			}
 
-			if len(applicationTargets) == 0 {
-				log.Fatalf("No targets found for application with ID %s", applicationId)
+			if len(playbookTargets) == 0 {
+				log.Fatalf("No targets found for playbook with ID %s", playbookId)
 			}
 
 			inventory := ""
 
-			for _, applicationTarget := range applicationTargets {
+			for _, playbookTarget := range playbookTargets {
 				target := paasible.Target{}
 
 				err = paasible.TargetQuery(app).Where(dbx.HashExp{
-					"id": applicationTarget.TargetId,
+					"id": playbookTarget.TargetId,
 				}).One(&target)
 				if err != nil {
-					log.Fatalf("Failed to find target with ID %s: %v", applicationTarget.TargetId, err)
+					log.Fatalf("Failed to find target with ID %s: %v", playbookTarget.TargetId, err)
 				}
 
 				targetSshKey := paasible.TargetSshKey{}
@@ -105,8 +105,8 @@ func InitRunAppilcationCmd(
 				// # Create ssh file
 				pathToSshKey := path.Join(
 					paasibleDataFolderPath,
-					paasible.DATA_APPLICATIONS_FOLDER_NAME,
-					application.Path,
+					paasible.DATA_PLAYBOOKS_FOLDER_NAME,
+					playbook.Path,
 					fmt.Sprintf("%s_%s.ssh_key", target.Id, sshKey.Name),
 				)
 
@@ -118,30 +118,29 @@ func InitRunAppilcationCmd(
 
 				inventory += fmt.Sprintf(`[%s]
 %s ansible_host=%s ansible_ssh_user=%s ansible_ssh_private_key_file=%s
-`, application.Name, application.Name, target.Address, applicationTarget.User, pathToSshKey)
+`, playbook.Name, playbook.Name, target.Address, playbookTarget.User, pathToSshKey)
 			}
 
 			// # Create inventory file
 			inventoryFilePath := path.Join(
 				paasibleDataFolderPath,
-				paasible.DATA_APPLICATIONS_FOLDER_NAME,
-				application.Path,
+				paasible.DATA_PLAYBOOKS_FOLDER_NAME,
+				playbook.Path,
 				"inventory.ini",
 			)
 			err = os.WriteFile(inventoryFilePath, []byte(inventory), 0644)
 			if err != nil {
 				log.Fatalf("Failed to write inventory file: %v", err)
 			}
-			log.Printf("Inventory file created at %s", inventoryFilePath)
 
 			// # Create ansible-playbook command
 			ansiblePlaybookArgs := []string{
 				"-i", inventoryFilePath,
 				path.Join(
 					paasibleDataFolderPath,
-					paasible.DATA_APPLICATIONS_FOLDER_NAME,
-					application.Path,
-					application.PlaybookPath,
+					paasible.DATA_PLAYBOOKS_FOLDER_NAME,
+					playbook.Path,
+					playbook.PlaybookPath,
 				),
 			}
 
@@ -151,7 +150,7 @@ func InitRunAppilcationCmd(
 				ansiblePlaybookArgs,
 				machineId,
 				userId,
-				applicationId,
+				playbookId,
 			)
 			if err != nil {
 				log.Fatalf("Error running ansible-playbook: %v", err)
@@ -162,8 +161,8 @@ func InitRunAppilcationCmd(
 		},
 	}
 
-	runApplicationCmd.Flags().StringP("id", "i", "", "ID of the application to run")
-	runApplicationCmd.MarkFlagRequired("id")
+	runPlaybookCmd.Flags().StringP("id", "i", "", "ID of the playbook to run")
+	runPlaybookCmd.MarkFlagRequired("id")
 
-	app.RootCmd.AddCommand(runApplicationCmd)
+	app.RootCmd.AddCommand(runPlaybookCmd)
 }

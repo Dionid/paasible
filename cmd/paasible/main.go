@@ -95,7 +95,7 @@ func main() {
 		paasibleDataFolderPath,
 	)
 
-	features.InitRunAppilcationCmd(
+	features.InitRunPlaybookCmd(
 		app,
 		&paasibleConfig,
 		paasibleDataFolderPath,

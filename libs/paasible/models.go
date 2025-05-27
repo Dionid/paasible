@@ -23,7 +23,7 @@ type RunResult struct {
 	MachineId        string         `json:"machine_id" db:"machine_id"`
 	UserId           string         `json:"user_id" db:"user_id"`
 
-	ApplicationId string `json:"application_id" db:"application_id"` // the application where the command was run
+	PlaybookId string `json:"playbook_id" db:"playbook_id"` // the playbook where the command was run
 }
 
 func (t RunResult) TableName() string {
@@ -120,9 +120,9 @@ func TargetSshKeyModel(app *pocketbase.PocketBase, entity *SshKey) *dbx.ModelQue
 
 // ---
 
-var _ core.Model = (*Application)(nil)
+var _ core.Model = (*Playbook)(nil)
 
-type Application struct {
+type Playbook struct {
 	core.BaseModel
 
 	Name             string `json:"name" db:"name"`
@@ -131,41 +131,41 @@ type Application struct {
 	OriginRepository string `json:"origin_repository" db:"origin_repository"`
 }
 
-func (r Application) TableName() string {
-	return "application"
+func (r Playbook) TableName() string {
+	return "playbook"
 }
 
-func ApplicationQuery(app *pocketbase.PocketBase) *dbx.SelectQuery {
-	return app.RecordQuery(Application{}.TableName())
+func PlaybookQuery(app *pocketbase.PocketBase) *dbx.SelectQuery {
+	return app.RecordQuery(Playbook{}.TableName())
 }
 
-func ApplicationModel(app *pocketbase.PocketBase, entity *SshKey) *dbx.ModelQuery {
+func PlaybookModel(app *pocketbase.PocketBase, entity *SshKey) *dbx.ModelQuery {
 	return app.DB().Model(entity)
 }
 
 // ---
 
-var _ core.Model = (*ApplicationTarget)(nil)
+var _ core.Model = (*PlaybookTarget)(nil)
 
-type ApplicationTarget struct {
+type PlaybookTarget struct {
 	core.BaseModel
 
-	Created       types.DateTime `json:"created" db:"created"`
-	Updated       types.DateTime `json:"updated" db:"updated"`
-	Name          string         `json:"name" db:"name"`
-	User          string         `json:"user" db:"user"`
-	ApplicationId string         `json:"application_id" db:"application_id"`
-	TargetId      string         `json:"target_id" db:"target_id"`
+	Created    types.DateTime `json:"created" db:"created"`
+	Updated    types.DateTime `json:"updated" db:"updated"`
+	Name       string         `json:"name" db:"name"`
+	User       string         `json:"user" db:"user"`
+	PlaybookId string         `json:"playbook_id" db:"playbook_id"`
+	TargetId   string         `json:"target_id" db:"target_id"`
 }
 
-func (r ApplicationTarget) TableName() string {
-	return "application_target"
+func (r PlaybookTarget) TableName() string {
+	return "playbook_target"
 }
 
-func ApplicationTargetQuery(app *pocketbase.PocketBase) *dbx.SelectQuery {
-	return app.RecordQuery(ApplicationTarget{}.TableName())
+func PlaybookTargetQuery(app *pocketbase.PocketBase) *dbx.SelectQuery {
+	return app.RecordQuery(PlaybookTarget{}.TableName())
 }
 
-func ApplicationTargetModel(app *pocketbase.PocketBase, entity *SshKey) *dbx.ModelQuery {
+func PlaybookTargetModel(app *pocketbase.PocketBase, entity *SshKey) *dbx.ModelQuery {
 	return app.DB().Model(entity)
 }

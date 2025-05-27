@@ -26,19 +26,19 @@ func RunAndSave(
 	args []string,
 	machineId string,
 	userId string,
-	applicationId string,
+	playbookId string,
 ) error {
 	// # Create new TaskRunResult
 	playbookRunResult := paasible.RunResult{
 		BaseModel: core.BaseModel{
 			Id: uuidv7.NewE().String(),
 		},
-		Created:       types.NowDateTime(),
-		Updated:       types.NowDateTime(),
-		Pwd:           currentFolderPath,
-		MachineId:     machineId,
-		UserId:        userId,
-		ApplicationId: applicationId,
+		Created:    types.NowDateTime(),
+		Updated:    types.NowDateTime(),
+		Pwd:        currentFolderPath,
+		MachineId:  machineId,
+		UserId:     userId,
+		PlaybookId: playbookId,
 	}
 
 	// ## Check branch
