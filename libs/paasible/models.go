@@ -125,10 +125,14 @@ var _ core.Model = (*Playbook)(nil)
 type Playbook struct {
 	core.BaseModel
 
+	Created types.DateTime `json:"created" db:"created"`
+	Updated types.DateTime `json:"updated" db:"updated"`
+
 	Name             string `json:"name" db:"name"`
 	Path             string `json:"path" db:"path"`
-	PlaybookPath     string `json:"playbook_path" db:"playbook_path"`
+	CodePath         string `json:"code_path" db:"code_path"`
 	OriginRepository string `json:"origin_repository" db:"origin_repository"`
+	InventoriesPaths string `json:"inventories_paths" db:"inventories_paths"` // comma-separated paths to inventory files
 }
 
 func (r Playbook) TableName() string {
@@ -150,12 +154,14 @@ var _ core.Model = (*PlaybookTarget)(nil)
 type PlaybookTarget struct {
 	core.BaseModel
 
-	Created    types.DateTime `json:"created" db:"created"`
-	Updated    types.DateTime `json:"updated" db:"updated"`
-	Name       string         `json:"name" db:"name"`
-	User       string         `json:"user" db:"user"`
-	PlaybookId string         `json:"playbook_id" db:"playbook_id"`
-	TargetId   string         `json:"target_id" db:"target_id"`
+	Created types.DateTime `json:"created" db:"created"`
+	Updated types.DateTime `json:"updated" db:"updated"`
+
+	Name       string `json:"name" db:"name"`
+	Group      string `json:"group" db:"group"` // e.g. "webservers", "dbservers"
+	User       string `json:"user" db:"user"`
+	PlaybookId string `json:"playbook_id" db:"playbook_id"`
+	TargetId   string `json:"target_id" db:"target_id"`
 }
 
 func (r PlaybookTarget) TableName() string {

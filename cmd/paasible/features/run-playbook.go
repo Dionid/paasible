@@ -72,7 +72,7 @@ func InitRunPlaybookCmd(
 				log.Fatalf("No targets found for playbook with ID %s", playbookId)
 			}
 
-			inventory := ""
+			inventoryByGroup := make(map[string]string)
 
 			for _, playbookTarget := range playbookTargets {
 				target := paasible.Target{}
@@ -106,7 +106,7 @@ func InitRunPlaybookCmd(
 				pathToSshKey := path.Join(
 					paasibleDataFolderPath,
 					paasible.DATA_PLAYBOOKS_FOLDER_NAME,
-					playbook.Path,
+					playbook.CodePath,
 					fmt.Sprintf("%s_%s.ssh_key", target.Id, sshKey.Name),
 				)
 
@@ -116,16 +116,26 @@ func InitRunPlaybookCmd(
 					log.Fatalf("Failed to write SSH key file: %v", err)
 				}
 
-				inventory += fmt.Sprintf(`[%s]
-%s ansible_host=%s ansible_ssh_user=%s ansible_ssh_private_key_file=%s
-`, playbook.Name, playbook.Name, target.Address, playbookTarget.User, pathToSshKey)
+				inventoryByGroup[playbookTarget.Group] = fmt.Sprintf(
+					`%s ansible_host=%s ansible_ssh_user=%s ansible_ssh_private_key_file=%s`,
+					playbook.Name,
+					target.Address,
+					playbookTarget.User,
+					pathToSshKey,
+				)
+			}
+
+			inventory := ""
+
+			for group, hosts := range inventoryByGroup {
+				inventory += fmt.Sprintf("[%s]\n%s\n\n", group, hosts)
 			}
 
 			// # Create inventory file
 			inventoryFilePath := path.Join(
 				paasibleDataFolderPath,
 				paasible.DATA_PLAYBOOKS_FOLDER_NAME,
-				playbook.Path,
+				playbook.CodePath,
 				"inventory.ini",
 			)
 			err = os.WriteFile(inventoryFilePath, []byte(inventory), 0644)
@@ -139,8 +149,8 @@ func InitRunPlaybookCmd(
 				path.Join(
 					paasibleDataFolderPath,
 					paasible.DATA_PLAYBOOKS_FOLDER_NAME,
+					playbook.CodePath,
 					playbook.Path,
-					playbook.PlaybookPath,
 				),
 			}
 
