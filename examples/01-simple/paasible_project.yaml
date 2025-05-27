@@ -1,0 +1,9 @@
+paasible_project:
+  name: Simple project
+  repository: https://github.com/Dionid/paasible
+  playbooks:
+    - name: First playbook
+      description: A simple example of a Paasible project.
+      path: ./playbook.yaml
+      inventories_paths:
+        - ./inventories.ini
