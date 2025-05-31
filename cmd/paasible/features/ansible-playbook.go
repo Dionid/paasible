@@ -21,7 +21,7 @@ import (
 )
 
 func RunAndSave(
-	currentFolderPath string,
+	paasibleCliPwd string,
 	paasibleDataFolderPath string,
 	args []string,
 	machineId string,
@@ -35,19 +35,10 @@ func RunAndSave(
 		},
 		Created:    types.NowDateTime(),
 		Updated:    types.NowDateTime(),
-		Pwd:        currentFolderPath,
+		Pwd:        paasibleCliPwd,
 		MachineId:  machineId,
 		UserId:     userId,
 		PlaybookId: playbookId,
-	}
-
-	// ## Check branch
-	gitBranchResult := paasible.ExecGitCommand(
-		exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD"),
-		currentFolderPath,
-	)
-	if gitBranchResult.Error == nil {
-		playbookRunResult.RepositoryBranch = gitBranchResult.Stdout
 	}
 
 	// # Run ansible-playbook
@@ -117,7 +108,8 @@ func RunAndSave(
 
 func InitAnsiblePlaybookCmd(
 	app *pocketbase.PocketBase,
-	config *paasible.ConfigFile,
+	config *paasible.EntityStorage,
+	paasibleCliPwd string,
 	paasibleDataFolderPath string,
 ) {
 	ansiblePlaybookCmd := &cobra.Command{
@@ -127,12 +119,6 @@ func InitAnsiblePlaybookCmd(
 		Args:    cobra.ArbitraryArgs,
 		Example: "ansible-playbook playbook.yml",
 		Run: func(cmd *cobra.Command, args []string) {
-			// # Current folder path
-			currentFolderPath, err := os.Getwd()
-			if err != nil {
-				log.Fatal("Error getting current folder path:", err)
-			}
-
 			// # Take playbook relative path
 			playbookRelativePath := ""
 			for _, ar := range args {
@@ -159,8 +145,8 @@ func InitAnsiblePlaybookCmd(
 				log.Fatal("Can't find user id in config file!")
 			}
 
-			err = RunAndSave(
-				currentFolderPath,
+			err := RunAndSave(
+				paasibleCliPwd,
 				paasibleDataFolderPath,
 				args,
 				machineId,

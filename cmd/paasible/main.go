@@ -17,14 +17,17 @@ import (
 )
 
 func main() {
-	currentFolder, err := os.Getwd()
+	paasibleCliPwd, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	yamlPath, ok := os.LookupEnv("PAASIBLE_CONFIG_PATH")
 	if ok == false {
-		yamlPath = "."
+		yamlPath = path.Join(
+			paasibleCliPwd,
+			"./paasible.yaml",
+		)
 	}
 
 	yamlConfig, err := initConfig(
@@ -34,10 +37,22 @@ func main() {
 		log.Fatal(err)
 	}
 
+	storage, err := paasible.EntityStorageFromOrigin(
+		yamlConfig,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// # Paasible config folder path
+	paasibleRootConfigFolderPath := path.Dir(
+		yamlPath,
+	)
+
 	// # Paasible data folder path
 	paasibleDataFolderPath := path.Join(
-		currentFolder,
-		yamlConfig.Paasible.DataFolderPath,
+		paasibleRootConfigFolderPath,
+		storage.Paasible.DataFolderPath,
 	)
 
 	// # Create data folder
@@ -58,19 +73,22 @@ func main() {
 
 	migratecmd.MustRegister(app, app.RootCmd, migratecmd.Config{
 		Automigrate: isGoRun,
-		Dir:         path.Join(currentFolder, "pb_migrations"),
+		Dir:         path.Join(paasibleCliPwd, "pb_migrations"),
 	})
 
 	// # Commands
 	features.InitAnsiblePlaybookCmd(
 		app,
-		yamlConfig,
+		storage,
+		paasibleCliPwd,
 		paasibleDataFolderPath,
 	)
 
 	features.InitRunPlaybookCmd(
 		app,
-		yamlConfig,
+		storage,
+		paasibleRootConfigFolderPath,
+		paasibleCliPwd,
 		paasibleDataFolderPath,
 	)
 
@@ -88,7 +106,7 @@ func main() {
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		err := features.ParsePaasibleData(
 			app,
-			path.Join(currentFolder, yamlConfig.Paasible.DataFolderPath),
+			path.Join(paasibleCliPwd, storage.Paasible.DataFolderPath),
 		)
 
 		if err != nil {
@@ -140,7 +158,10 @@ func main() {
 
 	// out of the box fsnotify can watch a single file, or a single directory
 	if err := watcher.Add(
-		path.Join(currentFolder, yamlConfig.Paasible.DataFolderPath, paasible.RUN_RESULT_FOLDER_NAME),
+		path.Join(
+			paasibleDataFolderPath,
+			paasible.RUN_RESULT_FOLDER_NAME,
+		),
 	); err != nil {
 		log.Fatal("Can't add file watcher", err)
 	}

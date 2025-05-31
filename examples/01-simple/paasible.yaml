@@ -55,10 +55,9 @@ performances:
       - simple_playbook
     inventories:
       - default
-    variables:
-      - path: ./variables.yaml
     targets:
       - host: localhost
         ssh_key: default
+        group: target
         user: root
         port: 22

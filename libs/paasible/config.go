@@ -7,19 +7,19 @@ import (
 )
 
 type ConfigFile struct {
-	FilePath string `yaml:"-"` // where file stored
+	FilePath string `mapstructure:"-"` // where file stored
 
-	IncludePaths []string      `yaml:"include"`
-	Includes     []*ConfigFile `yaml:"-"` // included config files
+	IncludePaths []string      `mapstructure:"include"`
+	Includes     []*ConfigFile `mapstructure:"-"` // included config files
 
-	UI           *UIEntity           `yaml:"web"`
-	Auth         *AuthEntity         `yaml:"auth"`
-	Paasible     *PaasibleEntity     `yaml:"paasible"`
-	SSHKeys      []SSHKeyEntity      `yaml:"ssh_keys"`
-	Hosts        []HostEntity        `yaml:"hosts"`
-	Inventories  []InventoryEntity   `yaml:"inventories"`
-	Projects     []ProjectEntity     `yaml:"projects"`
-	Performances []PerformanceEntity `yaml:"performances"`
+	Paasible     *PaasibleEntity
+	UI           *UIEntity           `mapstructure:"web"`
+	Auth         *AuthEntity         `mapstructure:"auth"`
+	SshKeys      []SSHKeyEntity      `mapstructure:"ssh_keys"`
+	Hosts        []HostEntity        `mapstructure:"hosts"`
+	Inventories  []InventoryEntity   `mapstructure:"inventories"`
+	Projects     []ProjectEntity     `mapstructure:"projects"`
+	Performances []PerformanceEntity `mapstructure:"performances"`
 }
 
 func ParseConfig(
@@ -29,10 +29,9 @@ func ParseConfig(
 	yamlConfigViper := viper.New()
 
 	// ## Tell viper the path/location of your env file. If it is root just add "."
-	yamlConfigViper.AddConfigPath(yamlConfigPath)
-
-	// ## Tell viper the type of your file
-	yamlConfigViper.SetConfigType("yaml")
+	yamlConfigViper.SetConfigFile(
+		yamlConfigPath,
+	)
 
 	// ## Viper reads all the variables from env file and log error if any found
 	if err := yamlConfigViper.ReadInConfig(); err != nil {

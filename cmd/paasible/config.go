@@ -31,20 +31,18 @@ func initConfig(
 	// # Env
 	envConfigViper := viper.New()
 
-	if yamlConfig.Paasible.CliEnvPath == "" {
-		envConfigViper.AddConfigPath(".")
+	// fmt.Println("yaml config: ", yamlConfig)
 
-		// ## Tell viper the name of your file
-		envConfigViper.SetConfigName("paasible.env")
+	if yamlConfig.Paasible.CliEnvPath == "" {
+		envConfigViper.SetConfigFile("./paasible.env")
 	} else {
 		// ## Tell viper the path/location of your env file. If it is root just add "."
-		envConfigViper.AddConfigPath(yamlConfig.Paasible.CliEnvPath)
+		envConfigViper.SetConfigFile(yamlConfig.Paasible.CliEnvPath)
 	}
 
 	// ## Tell viper the type of your file
 	envConfigViper.SetConfigType("env")
 
-	// envConfigViper.SetDefault("PORT", 8080)
 	envConfigViper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	// ## Viper reads all the variables from env file and log error if any found
@@ -65,10 +63,14 @@ func initConfig(
 		envConfig.Port = 8080
 	}
 
-	yamlConfig.Auth.User = envConfig.User
-	yamlConfig.Auth.Machine = envConfig.Machine
+	yamlConfig.Auth = &paasible.AuthEntity{
+		User:    envConfig.User,
+		Machine: envConfig.Machine,
+	}
 
-	yamlConfig.UI.Port = envConfig.Port
+	yamlConfig.UI = &paasible.UIEntity{
+		Port: envConfig.Port,
+	}
 
 	return yamlConfig, nil
 }

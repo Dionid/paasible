@@ -7,17 +7,18 @@ import (
 )
 
 type EntityStorage struct {
-	Origin *ConfigFile `yaml:"-"`
+	Origin *ConfigFile
 
-	UI       *UIEntity       `yaml:"ui"`
-	Auth     *AuthEntity     `yaml:"auth"`
-	Paasible *PaasibleEntity `yaml:"paasible"`
+	UI       *UIEntity
+	Auth     *AuthEntity
+	Paasible *PaasibleEntity
 
-	SSHKeys      map[string]SSHKeyEntity      `yaml:"ssh_keys"`
-	Hosts        map[string]HostEntity        `yaml:"hosts"`
-	Inventories  map[string]InventoryEntity   `yaml:"inventories"`
-	Projects     map[string]ProjectEntity     `yaml:"projects"`
-	Performances map[string]PerformanceEntity `yaml:"performances"`
+	SSHKeys        map[string]SSHKeyEntity
+	Hosts          map[string]HostEntity
+	Inventories    map[string]InventoryEntity
+	Projects       map[string]ProjectEntity
+	PlaybookEntity map[string]PlaybookEntity
+	Performances   map[string]PerformanceEntity
 }
 
 func NameToId(name string) string {
@@ -36,7 +37,7 @@ func NameToId(name string) string {
 }
 
 func ParseConfigFile(storage *EntityStorage, origin *ConfigFile) error {
-	for _, sshKey := range origin.SSHKeys {
+	for _, sshKey := range origin.SshKeys {
 		sshKey.Origin = origin
 		if sshKey.Id == "" {
 			sshKey.Id = NameToId(sshKey.Name)
@@ -106,6 +107,26 @@ func ParseConfigFile(storage *EntityStorage, origin *ConfigFile) error {
 		}
 
 		storage.Projects[project.Id] = project
+
+		for _, playbook := range project.Playbooks {
+			playbook.Origin = origin
+			if playbook.Id == "" {
+				playbook.Id = NameToId(playbook.Name)
+
+				if playbook.Id == "" {
+					return fmt.Errorf("SSH key must have a name or ID: %v", playbook)
+				}
+			}
+
+			playbook.ProjectId = project.Id
+
+			_, exist := storage.PlaybookEntity[playbook.Id]
+			if exist {
+				return fmt.Errorf("SSH key with ID '%s' already exists in file '%s'", playbook.Id, origin.FilePath)
+			}
+
+			storage.PlaybookEntity[playbook.Id] = playbook
+		}
 	}
 
 	for _, performance := range origin.Performances {
@@ -144,11 +165,12 @@ func EntityStorageFromOrigin(origin *ConfigFile) (*EntityStorage, error) {
 		Auth:     origin.Auth,
 		Paasible: origin.Paasible,
 
-		SSHKeys:      make(map[string]SSHKeyEntity),
-		Hosts:        make(map[string]HostEntity),
-		Inventories:  make(map[string]InventoryEntity),
-		Projects:     make(map[string]ProjectEntity),
-		Performances: make(map[string]PerformanceEntity),
+		SSHKeys:        make(map[string]SSHKeyEntity),
+		Hosts:          make(map[string]HostEntity),
+		Inventories:    make(map[string]InventoryEntity),
+		Projects:       make(map[string]ProjectEntity),
+		PlaybookEntity: make(map[string]PlaybookEntity),
+		Performances:   make(map[string]PerformanceEntity),
 	}
 
 	storage.UI.Origin = origin
@@ -164,125 +186,120 @@ func EntityStorageFromOrigin(origin *ConfigFile) (*EntityStorage, error) {
 }
 
 type UIEntity struct {
-	Origin *ConfigFile `yaml:"-"`
+	Origin *ConfigFile `mapstructure:"-"`
 
-	Id   string `yaml:"id"`
-	Port int    `yaml:"port"`
+	Id   string `mapstructure:"id"`
+	Port int    `mapstructure:"port"`
 }
 
 type AuthEntity struct {
-	Origin *ConfigFile `yaml:"-"`
+	Origin *ConfigFile `mapstructure:"-"`
 
-	Id      string `yaml:"id"`
-	User    string `yaml:"user"`
-	Machine string `yaml:"machine"`
+	Id      string `mapstructure:"id"`
+	User    string `mapstructure:"user"`
+	Machine string `mapstructure:"machine"`
 }
 
 type PaasibleEntity struct {
-	Origin *ConfigFile `yaml:"-"`
+	Origin *ConfigFile `mapstructure:"-"`
 
-	Id         string `yaml:"id"`
-	CliVersion string `yaml:"cli_version"`
-	CliEnvPath string `yaml:"cli_env_path"`
+	CliVersion string `mapstructure:"cli_version"`
+	CliEnvPath string `mapstructure:"cli_env_path"`
 
-	DataFolderPath string `yaml:"data_folder_path"`
+	DataFolderPath string `mapstructure:"data_folder_path"`
 }
 
 type SSHKeyEntity struct {
-	Origin *ConfigFile `yaml:"-"`
+	Origin *ConfigFile `mapstructure:"-"`
 
-	Id          string `yaml:"id"`
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
+	Id          string `mapstructure:"id"`
+	Name        string `mapstructure:"name"`
+	Description string `mapstructure:"description"`
 
-	PrivatePath string `yaml:"private_path"`
-	PublicPath  string `yaml:"public_path"`
-
-	Private    string `yaml:"private"`
-	Public     string `yaml:"public"`
-	Passphrase string `yaml:"passphrase"` // optional passphrase for the private key
+	PrivatePath string `mapstructure:"private_path"`
+	PublicPath  string `mapstructure:"public_path"`
 }
 
 type HostEntity struct {
-	Origin *ConfigFile `yaml:"-"`
+	Origin *ConfigFile `mapstructure:"-"`
 
-	Id          string   `yaml:"id"`
-	Name        string   `yaml:"name"`
-	Description string   `yaml:"description"`
-	Address     string   `yaml:"address"`
-	SSHKeys     []string `yaml:"ssh_keys"`
+	Id          string   `mapstructure:"id"`
+	Name        string   `mapstructure:"name"`
+	Description string   `mapstructure:"description"`
+	Address     string   `mapstructure:"address"`
+	SSHKeys     []string `mapstructure:"ssh_keys"`
 }
 
 type InventoryEntity struct {
-	Origin *ConfigFile `yaml:"-"`
+	Origin *ConfigFile `mapstructure:"-"`
 
-	Id          string `yaml:"id"`
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
-	Path        string `yaml:"path"`
+	Id          string `mapstructure:"id"`
+	Name        string `mapstructure:"name"`
+	Description string `mapstructure:"description"`
+	Path        string `mapstructure:"path"`
 }
 
 type ProjectEntity struct {
-	Origin *ConfigFile `yaml:"-"`
+	Origin *ConfigFile `mapstructure:"-"`
 
-	Id               string     `yaml:"id"`
-	Name             string     `yaml:"name"`
-	Description      string     `yaml:"description"`
-	Version          string     `yaml:"version"`
-	CliVersion       string     `yaml:"cli_version"`
-	Repository       string     `yaml:"repository"`
-	RepositoryBranch string     `yaml:"repository_branch"`
-	RepositoryPath   string     `yaml:"repository_path"`
-	LocalPath        string     `yaml:"local_path"`
-	Playbooks        []Playbook `yaml:"playbooks"`
+	Id               string           `mapstructure:"id"`
+	Name             string           `mapstructure:"name"`
+	Description      string           `mapstructure:"description"`
+	Version          string           `mapstructure:"version"`
+	CliVersion       string           `mapstructure:"cli_version"`
+	Repository       string           `mapstructure:"repository"`
+	RepositoryBranch string           `mapstructure:"repository_branch"`
+	RepositoryPath   string           `mapstructure:"repository_path"`
+	LocalPath        string           `mapstructure:"local_path"`
+	Playbooks        []PlaybookEntity `mapstructure:"playbooks"`
 }
 
 type PlaybookEntity struct {
-	Origin *ConfigFile `yaml:"-"`
+	Origin *ConfigFile `mapstructure:"-"`
 
-	Id              string               `yaml:"id"`
-	ID              string               `yaml:"id"`
-	Name            string               `yaml:"name"`
-	Description     string               `yaml:"description"`
-	Path            string               `yaml:"path"`
-	VariablesSchema VariableSchemaEntity `yaml:"variables_schema"`
+	Id          string `mapstructure:"id"`
+	ID          string `mapstructure:"id"`
+	Name        string `mapstructure:"name"`
+	Description string `mapstructure:"description"`
+	Path        string `mapstructure:"path"`
+	ProjectId   string `mapstructure:"project_id"`
 }
 
 type VariableSchemaEntity struct {
-	Origin *ConfigFile `yaml:"-"`
+	Origin *ConfigFile `mapstructure:"-"`
 
-	Id          string            `yaml:"id"`
-	Name        string            `yaml:"name"`
-	Description string            `yaml:"description"`
-	Schema      map[string]string `yaml:"schema"`
+	Id          string            `mapstructure:"id"`
+	Name        string            `mapstructure:"name"`
+	Description string            `mapstructure:"description"`
+	Schema      map[string]string `mapstructure:"schema"`
 }
 
 type PerformanceEntity struct {
-	Origin *ConfigFile `yaml:"-"`
+	Origin *ConfigFile `mapstructure:"-"`
 
-	Id          string           `yaml:"id"`
-	ID          string           `yaml:"id"`
-	Name        string           `yaml:"name"`
-	Description string           `yaml:"description"`
-	Playbooks   []string         `yaml:"playbooks"`
-	Inventories []string         `yaml:"inventories"`
-	Variables   []VariableEntity `yaml:"variables"`
-	Targets     []Target         `yaml:"targets"`
+	Id          string         `mapstructure:"id"`
+	ID          string         `mapstructure:"id"`
+	Name        string         `mapstructure:"name"`
+	Description string         `mapstructure:"description"`
+	Playbooks   []string       `mapstructure:"playbooks"`
+	Inventories []string       `mapstructure:"inventories"`
+	Targets     []TargetEntity `mapstructure:"targets"`
 }
 
 type VariableEntity struct {
-	Origin *ConfigFile `yaml:"-"`
+	Origin *ConfigFile `mapstructure:"-"`
 
-	Id   string `yaml:"id"`
-	Path string `yaml:"path"`
+	Id   string `mapstructure:"id"`
+	Path string `mapstructure:"path"`
 }
 
 type TargetEntity struct {
-	Origin *ConfigFile `yaml:"-"`
+	Origin *ConfigFile `mapstructure:"-"`
 
-	Id     string `yaml:"id"`
-	Host   string `yaml:"host"`
-	SSHKey string `yaml:"ssh_key"`
-	User   string `yaml:"user"`
-	Port   int    `yaml:"port"`
+	Id     string `mapstructure:"id"`
+	Host   string `mapstructure:"host"`
+	SSHKey string `mapstructure:"ssh_key"`
+	User   string `mapstructure:"user"`
+	Group  string `mapstructure:"group"`
+	Port   int    `mapstructure:"port"`
 }
