@@ -5,10 +5,10 @@ paasible:
 
 # Describe ssh keys
 ssh_keys:
-  - name: default_ssh_key
+  - name: local_ssh_key
     description: Default SSH key for localhost
-    private_path: ./ssh/id_rsa
-    public_path: ./ssh/id_rsa.pub
+    private_path: ~/.ssh/id_rsa
+    public_path: ~/.ssh/id_rsa.pub
 
 # Desctibe hosts
 hosts:
@@ -16,7 +16,7 @@ hosts:
     description: Localhost for testing purposes
     address: 127.0.0.1
     ssh_keys: # ssh keys to access the host
-      - default_ssh_key
+      - local_ssh_key
 
 # Just for backward compatibility
 inventories:
@@ -63,12 +63,3 @@ performances:
         user: root
         port: 22
 
-# Describe the crons
-crons:
-  - name: Simple cron
-    description: A simple cron job that runs every minute.
-    machine: localhost # The machine where the cron job will run
-    user: root
-    schedule: "* * * * *"
-    performances:
-      - simple_execution

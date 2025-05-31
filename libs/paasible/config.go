@@ -4,8 +4,8 @@ type CliConfig struct {
 	User    string
 	Machine string
 
-	CliVersion             string
-	DataFolderRelativePath string
+	CliVersion     string
+	DataFolderPath string
 }
 
 func CliConfigYaml() string {

@@ -55,16 +55,16 @@ func main() {
 
 	// # Paasible specific Config
 	paasibleConfig := paasible.CliConfig{
-		Machine:                envConfig.Machine,
-		User:                   envConfig.User,
-		CliVersion:             yamlConfig.Paasible.CliVersion,
-		DataFolderRelativePath: yamlConfig.Paasible.DataFolderRelativePath,
+		Machine:        envConfig.Machine,
+		User:           envConfig.User,
+		CliVersion:     yamlConfig.Paasible.CliVersion,
+		DataFolderPath: yamlConfig.Paasible.DataFolderRelativePath,
 	}
 
 	// # Paasible data folder path
 	paasibleDataFolderPath := path.Join(
 		currentFolder,
-		paasibleConfig.DataFolderRelativePath,
+		paasibleConfig.DataFolderPath,
 	)
 
 	// # Create data folder
@@ -171,7 +171,7 @@ func main() {
 
 	// out of the box fsnotify can watch a single file, or a single directory
 	if err := watcher.Add(
-		path.Join(currentFolder, paasibleConfig.DataFolderRelativePath, paasible.RUN_RESULT_FOLDER_NAME),
+		path.Join(currentFolder, paasibleConfig.DataFolderPath, paasible.RUN_RESULT_FOLDER_NAME),
 	); err != nil {
 		log.Fatal("Can't add file watcher", err)
 	}
