@@ -94,8 +94,8 @@ be queried.
 
 Main goal: create `.yaml` configuration for paasible, that describes: `ssh_keys`, `hosts`, `inventories`, `projects`, `playbooks`, `performances`, `variable_schemas` etc.
 
-1. Add `inventories`, `projects`, `playbooks`, `performances` and test with `paasible run`
-1. Add `ssh_keys`, `hosts` and test with `paasible run`
+1. ~~Add `inventories`, `projects`, `playbooks`, `performances` and test with `paasible run`~~
+1. ~~Add `ssh_keys`, `hosts` and test with `paasible run`~~
 1. Add `variable_schemas` and `variables` and test with `paasible run`
 1. Make ability to include other `.yaml` files into `paasible.yaml`
 1. Add `-c` as config path
