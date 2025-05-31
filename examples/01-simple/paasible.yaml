@@ -15,7 +15,7 @@ hosts:
   - name: localhost
     description: Localhost for testing purposes
     address: 127.0.0.1
-    ssh_keys:
+    ssh_keys: # ssh keys to access the host
       - default_ssh_key
 
 # Just for backward compatibility
@@ -23,15 +23,6 @@ inventories:
   - name: default_inventory
     description: Default inventory for the project
     path: ./inventories.ini
-
-# Describe variables
-variables_schema:
-  - name: default_variable_schema
-    description: Default variables schema for the project
-    schema:
-      ansible_python_interpreter: path
-      ansible_user: string
-      ansible_ssh_private_key_file: path
 
 # Describe the project
 projects:
@@ -49,26 +40,35 @@ projects:
         name: First playbook
         description: A simple example of a Paasible project
         path: ./playbook.yaml
-        variables_schema: default_variable_schema
+        variables_schema:
+          name: default_variable_schema
+          description: Default variables schema for the project
+          schema:
+            destinations: "[]paths"
 
-executions:
-  - id: simple_execution
-    name: Simple execution
-    description: A simple execution that runs the first playbook.
+# Describe the performances (playbook executions)
+performances:
+  - id: simple_performance
+    name: Simple performance
+    description: A simple performance that runs the first playbook.
     playbooks:
       - simple_playbook
     inventories:
       - default
+    variables:
+      - path: ./variables.yaml
     targets:
       - host: localhost
         ssh_key: default
         user: root
         port: 22
-        
+
+# Describe the crons
 crons:
   - name: Simple cron
     description: A simple cron job that runs every minute.
-    machine: localhost
+    machine: localhost # The machine where the cron job will run
+    user: root
     schedule: "* * * * *"
-    executions:
+    performances:
       - simple_execution
