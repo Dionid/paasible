@@ -15,7 +15,7 @@ import (
 
 func InitRunPlaybookCmd(
 	app *pocketbase.PocketBase,
-	config *paasible.CliConfig,
+	config *paasible.Config,
 	paasibleRootFolderPath string,
 ) {
 	runPlaybookCmd := &cobra.Command{
@@ -31,13 +31,13 @@ func InitRunPlaybookCmd(
 			}
 
 			// # Get Machine
-			machineId := config.Machine
+			machineId := config.Auth.Machine
 
 			if machineId == "" {
 				log.Fatal("Can't find machine id in config file!")
 			}
 
-			userId := config.User
+			userId := config.Auth.User
 
 			if userId == "" {
 				log.Fatal("Can't find user id in config file!")

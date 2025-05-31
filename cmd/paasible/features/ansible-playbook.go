@@ -117,7 +117,7 @@ func RunAndSave(
 
 func InitAnsiblePlaybookCmd(
 	app *pocketbase.PocketBase,
-	config *paasible.CliConfig,
+	config *paasible.Config,
 	paasibleDataFolderPath string,
 ) {
 	ansiblePlaybookCmd := &cobra.Command{
@@ -147,13 +147,13 @@ func InitAnsiblePlaybookCmd(
 			}
 
 			// # Get Machine
-			machineId := config.Machine
+			machineId := config.Auth.Machine
 
 			if machineId == "" {
 				log.Fatal("Can't find machine id in config file!")
 			}
 
-			userId := config.User
+			userId := config.Auth.User
 
 			if userId == "" {
 				log.Fatal("Can't find user id in config file!")

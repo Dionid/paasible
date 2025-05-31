@@ -12,9 +12,6 @@ import (
 
 func InitInitCmd(
 	app *pocketbase.PocketBase,
-	envConfigName string,
-	envConfigPath string,
-	yamlConfigName string,
 	yamlConfigPath string,
 ) {
 	initCmd := &cobra.Command{
@@ -23,21 +20,28 @@ func InitInitCmd(
 		Long:    "Create initial files and folders",
 		Example: "init",
 		Run: func(cmd *cobra.Command, args []string) {
-			yamlPath := path.Join(yamlConfigPath, yamlConfigName+".yaml")
-
-			// Check and create yaml config file
-			if _, err := os.Stat(yamlPath); os.IsNotExist(err) {
+			// # Check and create yaml config file
+			if _, err := os.Stat(yamlConfigPath); os.IsNotExist(err) {
 				content := paasible.CliConfigYaml()
-				if err := os.WriteFile(yamlPath, []byte(content), 0644); err != nil {
+				if err := os.WriteFile(yamlConfigPath, []byte(content), 0644); err != nil {
 					log.Fatalf("Failed to write yaml config file: %v", err)
 				}
 			}
 
-			envPath := path.Join(envConfigPath, envConfigName+".env")
-			// Check and create yaml config file
+			// # Check and create env config file
+			envPath := path.Join(path.Dir(yamlConfigPath), "paasible.env")
 			if _, err := os.Stat(envPath); os.IsNotExist(err) {
 				content := paasible.CliConfigEnv()
 				if err := os.WriteFile(envPath, []byte(content), 0644); err != nil {
+					log.Fatalf("Failed to write env config file: %v", err)
+				}
+			}
+
+			// # Check and create env example config file
+			envExamplePath := path.Join(path.Dir(yamlConfigPath), "paasible.env.example")
+			if _, err := os.Stat(envExamplePath); os.IsNotExist(err) {
+				content := paasible.CliConfigEnv()
+				if err := os.WriteFile(envExamplePath, []byte(content), 0644); err != nil {
 					log.Fatalf("Failed to write env config file: %v", err)
 				}
 			}

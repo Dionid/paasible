@@ -4,44 +4,42 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Dionid/paasible/libs/paasible"
 	"github.com/spf13/viper"
 )
 
 type EnvConfig struct {
 	AppVersion string `mapstructure:"APP_VERSION"`
-
-	Port    int    `mapstructure:"PAASIBLE_UI_PORT"`
-	User    string `mapstructure:"PAASIBLE_USER"`
-	Machine string `mapstructure:"PAASIBLE_MACHINE"`
-}
-
-type YamlConfigPaasible struct {
-	CliVersion             string `mapstructure:"cli_version"`
-	DataFolderRelativePath string `mapstructure:"data_folder"`
-}
-
-type YamlConfig struct {
-	Paasible YamlConfigPaasible `mapstructure:"paasible"`
+	Port       int    `mapstructure:"PAASIBLE_UI_PORT"`
+	User       string `mapstructure:"PAASIBLE_USER"`
+	Machine    string `mapstructure:"PAASIBLE_MACHINE"`
 }
 
 // Call to load the variables from env
 func initConfig(
-	envConfigName string,
-	envConfigPath string,
-	yamlConfigName string,
 	yamlConfigPath string,
-) (*EnvConfig, *YamlConfig, error) {
+) (*paasible.Config, error) {
 	// # Read os env
 	viper.AutomaticEnv()
+
+	// # Yaml
+	yamlConfig, err := paasible.ParseConfig(yamlConfigPath)
+	if err != nil {
+		return nil, err
+	}
 
 	// # Env
 	envConfigViper := viper.New()
 
-	// ## Tell viper the path/location of your env file. If it is root just add "."
-	envConfigViper.AddConfigPath(envConfigPath)
+	if yamlConfig.Paasible.CliEnvPath == "" {
+		envConfigViper.AddConfigPath(".")
 
-	// ## Tell viper the name of your file
-	envConfigViper.SetConfigName(envConfigName + ".env")
+		// ## Tell viper the name of your file
+		envConfigViper.SetConfigName("paasible.env")
+	} else {
+		// ## Tell viper the path/location of your env file. If it is root just add "."
+		envConfigViper.AddConfigPath(yamlConfig.Paasible.CliEnvPath)
+	}
 
 	// ## Tell viper the type of your file
 	envConfigViper.SetConfigType("env")
@@ -52,7 +50,7 @@ func initConfig(
 	// ## Viper reads all the variables from env file and log error if any found
 	if err := envConfigViper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return nil, nil, fmt.Errorf("Error while reading env config: %w", err)
+			return nil, fmt.Errorf("Error while reading env config: %w", err)
 		}
 	}
 
@@ -60,38 +58,17 @@ func initConfig(
 
 	// ## Viper unmarshals the loaded env varialbes into the struct
 	if err := envConfigViper.Unmarshal(envConfig); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	if envConfig.Port == 0 {
 		envConfig.Port = 8080
 	}
 
-	// # Yaml
-	yamlConfigViper := viper.New()
+	yamlConfig.Auth.User = envConfig.User
+	yamlConfig.Auth.Machine = envConfig.Machine
 
-	// ## Tell viper the path/location of your env file. If it is root just add "."
-	yamlConfigViper.AddConfigPath(yamlConfigPath)
+	yamlConfig.UI.Port = envConfig.Port
 
-	// ## Tell viper the name of your file
-	yamlConfigViper.SetConfigName(yamlConfigName)
-
-	// ## Tell viper the type of your file
-	yamlConfigViper.SetConfigType("yaml")
-
-	// ## Viper reads all the variables from env file and log error if any found
-	if err := yamlConfigViper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return nil, nil, fmt.Errorf("Error reading yaml config: %w", err)
-		}
-	}
-
-	yamlConfig := &YamlConfig{}
-
-	// ## Viper unmarshals the loaded env varialbes into the struct
-	if err := yamlConfigViper.Unmarshal(yamlConfig); err != nil {
-		return nil, nil, err
-	}
-
-	return envConfig, yamlConfig, nil
+	return yamlConfig, nil
 }

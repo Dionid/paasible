@@ -22,49 +22,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// # Take inital env
-	envFilename, ok := os.LookupEnv("PAASIBLE_ENV_FILENAME")
-	if ok == false {
-		envFilename = "paasible"
-	}
-
-	envPath, ok := os.LookupEnv("PAASIBLE_ENV_PATH")
-	if ok == false {
-		envPath = "."
-	}
-
-	yamlFilename, ok := os.LookupEnv("PAASIBLE_YAML_FILENAME")
-	if ok == false {
-		yamlFilename = "paasible"
-	}
-
-	yamlPath, ok := os.LookupEnv("PAASIBLE_YAML_PATH")
+	yamlPath, ok := os.LookupEnv("PAASIBLE_CONFIG_PATH")
 	if ok == false {
 		yamlPath = "."
 	}
 
-	envConfig, yamlConfig, err := initConfig(
-		envFilename,
-		envPath,
-		yamlFilename,
+	yamlConfig, err := initConfig(
 		yamlPath,
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// # Paasible specific Config
-	paasibleConfig := paasible.CliConfig{
-		Machine:        envConfig.Machine,
-		User:           envConfig.User,
-		CliVersion:     yamlConfig.Paasible.CliVersion,
-		DataFolderPath: yamlConfig.Paasible.DataFolderRelativePath,
-	}
-
 	// # Paasible data folder path
 	paasibleDataFolderPath := path.Join(
 		currentFolder,
-		paasibleConfig.DataFolderPath,
+		yamlConfig.Paasible.DataFolderPath,
 	)
 
 	// # Create data folder
@@ -91,21 +64,18 @@ func main() {
 	// # Commands
 	features.InitAnsiblePlaybookCmd(
 		app,
-		&paasibleConfig,
+		yamlConfig,
 		paasibleDataFolderPath,
 	)
 
 	features.InitRunPlaybookCmd(
 		app,
-		&paasibleConfig,
+		yamlConfig,
 		paasibleDataFolderPath,
 	)
 
 	features.InitInitCmd(
 		app,
-		envFilename,
-		envPath,
-		yamlFilename,
 		yamlPath,
 	)
 
@@ -118,7 +88,7 @@ func main() {
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		err := features.ParsePaasibleData(
 			app,
-			path.Join(currentFolder, yamlConfig.Paasible.DataFolderRelativePath),
+			path.Join(currentFolder, yamlConfig.Paasible.DataFolderPath),
 		)
 
 		if err != nil {
@@ -134,14 +104,13 @@ func main() {
 		log.Fatal("Check requiremenets: ", err)
 	}
 
-	// creates a new file watcher
+	// # When new log file added sabe it to DB
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal("Can't create watcher", err)
 	}
 	defer watcher.Close()
 
-	//
 	go func() {
 		for {
 			select {
@@ -171,7 +140,7 @@ func main() {
 
 	// out of the box fsnotify can watch a single file, or a single directory
 	if err := watcher.Add(
-		path.Join(currentFolder, paasibleConfig.DataFolderPath, paasible.RUN_RESULT_FOLDER_NAME),
+		path.Join(currentFolder, yamlConfig.Paasible.DataFolderPath, paasible.RUN_RESULT_FOLDER_NAME),
 	); err != nil {
 		log.Fatal("Can't add file watcher", err)
 	}
