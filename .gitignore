@@ -44,4 +44,4 @@ cmd/paasible/paasible.yaml
 
 # Examples
 examples/**/db
-examples/**/ssh/*
+examples/**/hidden/*
