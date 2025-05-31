@@ -38,10 +38,13 @@ inventory.*.ini
 # Pocketbase
 pb_data
 
-# Paasible
+# Development
 cmd/paasible/paasible
 cmd/paasible/paasible.yaml
 
 # Examples
 examples/**/db
 examples/**/hidden/*
+
+# Paasible
+paasible.hidden.yaml

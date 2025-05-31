@@ -4,6 +4,7 @@ paasible:
 
 # Include additional configuration files
 include:
+  - ./paasible.hidden.yaml
   - ./hidden/hosts.paasible.yaml
 
 # Custom inventories
