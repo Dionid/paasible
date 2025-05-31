@@ -117,7 +117,7 @@ func RunAndSave(
 
 func InitAnsiblePlaybookCmd(
 	app *pocketbase.PocketBase,
-	config *paasible.Config,
+	config *paasible.ConfigFile,
 	paasibleDataFolderPath string,
 ) {
 	ansiblePlaybookCmd := &cobra.Command{

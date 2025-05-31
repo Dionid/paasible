@@ -6,21 +6,25 @@ import (
 	"github.com/spf13/viper"
 )
 
-type Config struct {
-	Path         string              `yaml:"-"`
-	UI           UIConfig            `yaml:"web"`
-	Auth         AuthConfig          `yaml:"auth"`
-	Paasible     PaasibleConfig      `yaml:"paasible"`
-	SSHKeys      []SSHKeyConfig      `yaml:"ssh_keys"`
-	Hosts        []HostConfig        `yaml:"hosts"`
-	Inventories  []InventoryConfig   `yaml:"inventories"`
-	Projects     []ProjectConfig     `yaml:"projects"`
-	Performances []PerformanceConfig `yaml:"performances"`
+type ConfigFile struct {
+	FilePath string `yaml:"-"` // where file stored
+
+	IncludePaths []string      `yaml:"include"`
+	Includes     []*ConfigFile `yaml:"-"` // included config files
+
+	UI           *UIEntity           `yaml:"web"`
+	Auth         *AuthEntity         `yaml:"auth"`
+	Paasible     *PaasibleEntity     `yaml:"paasible"`
+	SSHKeys      []SSHKeyEntity      `yaml:"ssh_keys"`
+	Hosts        []HostEntity        `yaml:"hosts"`
+	Inventories  []InventoryEntity   `yaml:"inventories"`
+	Projects     []ProjectEntity     `yaml:"projects"`
+	Performances []PerformanceEntity `yaml:"performances"`
 }
 
 func ParseConfig(
 	yamlConfigPath string,
-) (*Config, error) {
+) (*ConfigFile, error) {
 	// # Yaml
 	yamlConfigViper := viper.New()
 
@@ -37,100 +41,26 @@ func ParseConfig(
 		}
 	}
 
-	yamlConfig := &Config{}
+	yamlConfig := &ConfigFile{}
 
-	yamlConfig.Path = yamlConfigPath
+	yamlConfig.FilePath = yamlConfigPath
 
 	// ## Viper unmarshals the loaded env varialbes into the struct
 	if err := yamlConfigViper.Unmarshal(yamlConfig); err != nil {
 		return nil, err
 	}
 
+	// ## Load includes
+	for _, includePath := range yamlConfig.IncludePaths {
+		includedConfig, err := ParseConfig(includePath)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing included config '%s': %w", includePath, err)
+		}
+
+		yamlConfig.Includes = append(yamlConfig.Includes, includedConfig)
+	}
+
 	return yamlConfig, nil
-}
-
-type UIConfig struct {
-	Port int `yaml:"port"`
-}
-
-type AuthConfig struct {
-	User    string
-	Machine string
-}
-
-type PaasibleConfig struct {
-	CliVersion string `yaml:"cli_version"`
-	CliEnvPath string `yaml:"cli_env_path"`
-
-	DataFolderPath string `yaml:"data_folder_path"`
-}
-
-type SSHKeyConfig struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
-	PrivatePath string `yaml:"private_path"`
-	PublicPath  string `yaml:"public_path"`
-}
-
-type HostConfig struct {
-	Name        string   `yaml:"name"`
-	Description string   `yaml:"description"`
-	Address     string   `yaml:"address"`
-	SSHKeys     []string `yaml:"ssh_keys"`
-}
-
-type InventoryConfig struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
-	Path        string `yaml:"path"`
-}
-
-type ProjectConfig struct {
-	ID               string     `yaml:"id"`
-	Name             string     `yaml:"name"`
-	Description      string     `yaml:"description"`
-	Version          string     `yaml:"version"`
-	CliVersion       string     `yaml:"cli_version"`
-	Repository       string     `yaml:"repository"`
-	RepositoryBranch string     `yaml:"repository_branch"`
-	RepositoryPath   string     `yaml:"repository_path"`
-	LocalPath        string     `yaml:"local_path"`
-	Playbooks        []Playbook `yaml:"playbooks"`
-}
-
-type PlaybookConfig struct {
-	ID              string               `yaml:"id"`
-	Name            string               `yaml:"name"`
-	Description     string               `yaml:"description"`
-	Path            string               `yaml:"path"`
-	VariablesSchema VariableSchemaConfig `yaml:"variables_schema"`
-}
-
-type VariableSchemaConfig struct {
-	Name        string            `yaml:"name"`
-	Description string            `yaml:"description"`
-	Schema      map[string]string `yaml:"schema"`
-}
-
-type PerformanceConfig struct {
-	ID          string           `yaml:"id"`
-	Name        string           `yaml:"name"`
-	Description string           `yaml:"description"`
-	Playbooks   []string         `yaml:"playbooks"`
-	Inventories []string         `yaml:"inventories"`
-	Variables   []VariableConfig `yaml:"variables"`
-	Targets     []Target         `yaml:"targets"`
-}
-
-type VariableConfig struct {
-	Path string `yaml:"path"`
-}
-
-type TargetConfig struct {
-	Host   string `yaml:"host"`
-	SSHKey string `yaml:"ssh_key"`
-	User   string `yaml:"user"`
-	Port   int    `yaml:"port"`
 }
 
 func CliConfigYaml() string {

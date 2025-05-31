@@ -18,7 +18,7 @@ type EnvConfig struct {
 // Call to load the variables from env
 func initConfig(
 	yamlConfigPath string,
-) (*paasible.Config, error) {
+) (*paasible.ConfigFile, error) {
 	// # Read os env
 	viper.AutomaticEnv()
 

@@ -15,7 +15,7 @@ import (
 
 func InitRunPlaybookCmd(
 	app *pocketbase.PocketBase,
-	config *paasible.Config,
+	config *paasible.ConfigFile,
 	paasibleRootFolderPath string,
 ) {
 	runPlaybookCmd := &cobra.Command{
