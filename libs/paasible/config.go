@@ -13,9 +13,10 @@ type ConfigFile struct {
 	IncludePaths []string      `mapstructure:"include"`
 	Includes     []*ConfigFile `mapstructure:"-"` // included config files
 
-	Paasible     *PaasibleEntity
-	UI           *UIEntity           `mapstructure:"ui"`
-	Auth         *AuthEntity         `mapstructure:"auth"`
+	Paasible *PaasibleEntity
+	UI       *UIEntity   `mapstructure:"ui"`
+	Auth     *AuthEntity `mapstructure:"auth"`
+
 	SshKeys      []SSHKeyEntity      `mapstructure:"ssh_keys"`
 	Hosts        []HostEntity        `mapstructure:"hosts"`
 	Inventories  []InventoryEntity   `mapstructure:"inventories"`

@@ -37,6 +37,16 @@ func NameToId(name string) string {
 }
 
 func ParseConfigFile(storage *EntityStorage, origin *ConfigFile) error {
+	if origin.UI != nil {
+		storage.UI = origin.UI
+		storage.UI.Origin = origin
+	}
+
+	if origin.Auth != nil {
+		storage.Auth = origin.Auth
+		storage.Auth.Origin = origin
+	}
+
 	for _, sshKey := range origin.SshKeys {
 		sshKey.Origin = origin
 		if sshKey.Id == "" {
@@ -174,8 +184,6 @@ func EntityStorageFromOrigin(origin *ConfigFile) (*EntityStorage, error) {
 		Performances: make(map[string]PerformanceEntity),
 	}
 
-	storage.UI.Origin = origin
-	storage.Auth.Origin = origin
 	storage.Paasible.Origin = origin
 
 	err := ParseConfigFile(storage, origin)
