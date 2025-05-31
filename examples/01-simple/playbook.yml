@@ -1,10 +1,10 @@
 ---
 - name: Test playbook
   hosts: target
-  become: yes
+  become: true
   tasks:
     - name: Ensure destination directories exist
-      file:
+      ansible.builtin.file:
         path: "{{ item }}"
         state: directory
         owner: "{{ ansible_user }}"

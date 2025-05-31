@@ -11,6 +11,7 @@ type CliConfig struct {
 func CliConfigYaml() string {
 	return `paasible:
   cli_version: 0.0.2
+  cli_env_path: ./paasible.env
 `
 }
 
