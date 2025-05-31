@@ -160,7 +160,7 @@ func main() {
 	if err := watcher.Add(
 		path.Join(
 			paasibleDataFolderPath,
-			paasible.RUN_RESULT_FOLDER_NAME,
+			paasible.RUN_RESULTS_FOLDER_NAME,
 		),
 	); err != nil {
 		log.Fatal("Can't add file watcher", err)

@@ -9,50 +9,44 @@ Cli and UI for `ansible` to run playbooks, store and search run results.
 1. Install `ansible-playbook`
 1. `paasible init` or create 2 files in root directory manually:
     1. `paasible.yaml` – defines shared configuration (must be stored in repository)
-    1. `paasible.hidden.yaml` – defines hidden configuration (like current user, machine, etc.)
+    1. `paasible.hidden.yaml` – defines hidden configuration (must be stored in `.gitignore`)
 1. Configure `paasible.hidden.yaml`
 1. Edit yours `.gitignore` and add:
-    1. `paasible.hidden.yaml` (or `*.hidden.yaml` for all hidden files)
+    1. `paasible.hidden.yaml`
     1. `db` (this folder is for local SQLite for UI)
 
 # Commands
 
-1. `paasible ansible-playbook playbook.yml` – to run playbook
-1. `paasible ansible-playbook playbook.yml -- ...` – to add any `ansible-playbook` specific arguments (e.g. `-i` for inventory or `-e` for extra vars, etc.)
-1. `paasible serve` – to serve web ui
+## `paasible ansible-playbook` – run ansible-playbook and store results
 
-# How to
+When you need just to fallback to original `ansible-playbook` command, but want to store results:
 
-## UI
-
-1. To use UI just run `paasible serve`, it will open admin page in your browser and you must create first admin user.
-1. After that go to `http://localhost:PORT/_/` into `run_result` table and you will see all playbooks that were runned and can filter by any field.
-
-## `paasible ansible-playbook`
-
-If you just want to run `ansible-playbook` and store results, you can do it with `paasible ansible-playbook playbook.yml -- (any ansible-playbook params)` command:
-
-1. Go through `Setup` section
 1. Run `paasible ansible-playbook playbook.yml -- (any ansible-playbook params)`
-1. This will create a new folder at `data_folder_path` and store `.json` files with result of playbook run
+1. This will create `run_results` and store `.json` files with result of playbook run
 1. You can search through this `.json` files as history or run UI to query them with advanced filters
 
-## `paasible run`
+## `paasible init` – initialization
 
-If you want to use advance `paasible` features like `ssh_keys`, `hosts`, `inventories`, `projects`, `playbooks`, `performances`, `variable_schemas` and `variables`:
+Creates `paasible.yaml` and `paasible.hidden.yaml` files
 
-1. Go through `Setup` section
+## `paasible serve` – web UI
+
+1. Run `paasible serve`
+1. Create first admin user.
+1. Go to `http://localhost:PORT/_/` into `run_result` table and search by filters.
+
+## `paasible run` – run paasible performances
+
 1. Add `ssh_keys`, `hosts`, `inventories`, `projects`, `playbooks`, `performances`,
 `variable_schemas` and `variables` to your `paasible.yaml` file or any other `.yaml` file,
 that included into `paasible.yaml`.
-1. Run `paasible performe PERFORMANCE_NAME_OR_ID`
-1. It will:
-    1. Check that `ssh_keys` are applicable to `hosts`
+1. Run `paasible performe <performance name or id>`
+1. This will:
+    1. Validate `performance.targets.ssh_keys` are applicable to `hosts`
     1. Validate `variables` against `variable_schemas`
     1. Create correct `inventory` file based on `hosts`, `ssh_keys` and `variables`
-    1. Run `ansible-playbook` with correct `inventory` and `variables`
-    1. Save result into `.json` files in `data_folder_path`
-1. You can search through this `.json` files as history or run UI to query them with advanced filters
+    1. Run `ansible-playbook` with `inventories` and `variables`
+    1. Save result `.json`
 
 # Dictionary
 
@@ -66,6 +60,8 @@ that included into `paasible.yaml`.
     was has run, stored in `paasible.hidden.yaml`*
 1. `Project` – combination of multiple `Playbooks` (can be stored in repository or just
     in local folder)
+1. `Performance` – a set of `Playbooks` with `Hosts`, `SSH Keys`, `Inventories`, `Variables`
+    and other configuration, needed to run playbooks.
 
 * – you can name it however you want, but keep them unique per user and per machine
 
@@ -92,13 +88,14 @@ Main goal: create `.yaml` configuration for paasible, that describes: `ssh_keys`
 1. ~~Make ability to include other `.yaml` files into `paasible.yaml`~~
 1. Add `-c` as config path
 1. Add `variable_schemas` and `variables` and test with `paasible run`
+1. Add `expand <entity_name>` command to show relationships between entities
 
 ## Stage 3. UI
 
 MG: create UI for Paasible to query and edit all entities, play performances,
 edit playbooks, projects, etc.
 
-1. Add authentication based on hidden
+1. Add authentication based on hidde
 1. ...
 
 ## Stage 4. Remote performe

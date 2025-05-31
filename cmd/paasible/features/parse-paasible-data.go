@@ -42,11 +42,11 @@ func ParsePaasibleData(
 	app *pocketbase.PocketBase,
 	rootFolderPath string,
 ) error {
-	// # Read all json files from rootFolderPath/plaubook_run_result and
+	// # Read all json files from rootFolderPath/playbook_run_result and
 	// parse them to paasible.PlaybookRunResult and insert into DB
 
 	// # Get all files in the folder
-	files, err := os.ReadDir(path.Join(rootFolderPath, paasible.RUN_RESULT_FOLDER_NAME))
+	files, err := os.ReadDir(path.Join(rootFolderPath, paasible.RUN_RESULTS_FOLDER_NAME))
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func ParsePaasibleData(
 		}
 
 		// # Read file
-		filePath := path.Join(rootFolderPath, paasible.RUN_RESULT_FOLDER_NAME, file.Name())
+		filePath := path.Join(rootFolderPath, paasible.RUN_RESULTS_FOLDER_NAME, file.Name())
 		err = UpsertPlaybookRunResult(app, filePath)
 		if err != nil {
 			return fmt.Errorf("ParsePaasibleData: %w", err)
