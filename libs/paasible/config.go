@@ -14,7 +14,7 @@ type ConfigFile struct {
 	Includes     []*ConfigFile `mapstructure:"-"` // included config files
 
 	Paasible     *PaasibleEntity
-	UI           *UIEntity           `mapstructure:"web"`
+	UI           *UIEntity           `mapstructure:"ui"`
 	Auth         *AuthEntity         `mapstructure:"auth"`
 	SshKeys      []SSHKeyEntity      `mapstructure:"ssh_keys"`
 	Hosts        []HostEntity        `mapstructure:"hosts"`
@@ -68,16 +68,72 @@ func ParseConfig(
 	return yamlConfig, nil
 }
 
-func CliConfigYaml() string {
+func PaasibleDefaultConfigYaml() string {
 	return `paasible:
   cli_version: 0.0.2
-  cli_env_path: ./paasible.env
+
+include:
+  - ./paasible.hidden.yaml
+
+# Custom inventories
+# inventories:
+#  - name: default_inventory
+#    description: Default inventory for the project
+#    path: ./inventory.ini
+
+# Describe the project
+# projects:
+#   - id: blank_project
+#     name: Simple project
+#     description: A simple example of a Paasible project
+#     local_path: .
+#     # Describe project playbooks
+#     playbooks:
+#       - id: blank_playbook
+#         name: Blank playbook
+#         description: A simple example of a Paasible project playbook
+#         path: ./playbook.yml
+
+# # Describe the performances (playbook executions)
+# performances:
+#   - id: simple_performance
+#     name: Simple performance
+#     description: A simple performance that runs the first playbook.
+#     playbooks:
+#       - project: blank_project
+#         playbook: blank_playbook
+#	  inventories:
+#		- default_inventory
+#     targets:
+#       - host: localhost
+#         ssh_key: local_ssh_key
+#         user: root
+#         group: all
+#         port: 22
+
+# # Desctibe hosts
+# hosts:
+#   - name: localhost
+#     address: 127.0.0.1
+#     ssh_keys: # ssh keys to access the host
+#       - local_ssh_key
+
+# # Describe ssh keys
+# ssh_keys:
+#   - name: local_ssh_key
+#     description: Local SSH key for the project
+#     private_path: ~/.ssh/id_rsa
+#     public_path: ~/.ssh/id_rsa.pub
 `
 }
 
-func CliConfigEnv() string {
-	return `PAASIBLE_UI_PORT=8080
-PAASIBLE_USER=user
-PAASIBLE_MACHINE=local
+func PaasibleDefaultHiddenConfigYaml() string {
+	return `
+ui:
+  port: 8080 # port for paasible UI
+
+auth:
+  user: user # user name that will be stored in run results
+  machine: local # machine name that will be stored in run results
 `
 }

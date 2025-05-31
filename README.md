@@ -9,17 +9,10 @@ Cli and UI for `ansible` to run playbooks, store and search run results.
 1. Install `ansible-playbook`
 1. `paasible init` or create 2 files in root directory manually:
     1. `paasible.yaml` – defines shared configuration (must be stored in repository)
-    1. `paasible.env` – defines hidden configuration (like current user, machine, etc.)
-1. Configure `paasible.env`:
-    1. `PAASIBLE_UI_PORT` – port for paasible UI
-    1. `PAASIBLE_USER` – user name that will be stored in run results
-    1. `PAASIBLE_MACHINE` – machine name that will be stored in run results
-1. Configure `paasible.yaml`:
-    1. `cli_version` – version of paasible CLI
-    1. `cli_env_path` – path to `.env` file (default is `./paasible.env`)
-    1. `data_folder_path` – where paasible will store data (default is `.`)
+    1. `paasible.hidden.yaml` – defines hidden configuration (like current user, machine, etc.)
+1. Configure `paasible.hidden.yaml`
 1. Edit yours `.gitignore` and add:
-    1. `paasible.env`
+    1. `paasible.hidden.yaml` (or `*.hidden.yaml` for all hidden files)
     1. `db` (this folder is for local SQLite for UI)
 
 # Commands
@@ -68,9 +61,9 @@ that included into `paasible.yaml`.
     1. Run performances
     1. Serve paasible UI
 1. `User` – this is arbitrary field that you use to understand who ran the playbook,
-    stored in `.env`*
+    stored in `paasible.hidden.yaml`*
 1. `Machine` – this is arbitrary field that you use to understand on what machine the playbook
-    was has run, stored in `.env`*
+    was has run, stored in `paasible.hidden.yaml`*
 1. `Project` – combination of multiple `Playbooks` (can be stored in repository or just
     in local folder)
 
@@ -105,7 +98,7 @@ Main goal: create `.yaml` configuration for paasible, that describes: `ssh_keys`
 MG: create UI for Paasible to query and edit all entities, play performances,
 edit playbooks, projects, etc.
 
-1. Add authentication based on `.env` file
+1. Add authentication based on hidden
 1. ...
 
 ## Stage 4. Remote performe

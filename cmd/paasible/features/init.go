@@ -22,27 +22,21 @@ func InitInitCmd(
 		Run: func(cmd *cobra.Command, args []string) {
 			// # Check and create yaml config file
 			if _, err := os.Stat(yamlConfigPath); os.IsNotExist(err) {
-				content := paasible.CliConfigYaml()
+				content := paasible.PaasibleDefaultConfigYaml()
 				if err := os.WriteFile(yamlConfigPath, []byte(content), 0644); err != nil {
 					log.Fatalf("Failed to write yaml config file: %v", err)
 				}
 			}
 
-			// # Check and create env config file
-			envPath := path.Join(path.Dir(yamlConfigPath), "paasible.env")
-			if _, err := os.Stat(envPath); os.IsNotExist(err) {
-				content := paasible.CliConfigEnv()
-				if err := os.WriteFile(envPath, []byte(content), 0644); err != nil {
-					log.Fatalf("Failed to write env config file: %v", err)
-				}
-			}
-
-			// # Check and create env example config file
-			envExamplePath := path.Join(path.Dir(yamlConfigPath), "paasible.env.example")
-			if _, err := os.Stat(envExamplePath); os.IsNotExist(err) {
-				content := paasible.CliConfigEnv()
-				if err := os.WriteFile(envExamplePath, []byte(content), 0644); err != nil {
-					log.Fatalf("Failed to write env config file: %v", err)
+			// # Check and create hidden yaml config file
+			hiddenYamlConfigPath := path.Join(
+				path.Dir(yamlConfigPath),
+				"paasible.hidden.yaml",
+			)
+			if _, err := os.Stat(hiddenYamlConfigPath); os.IsNotExist(err) {
+				content := paasible.PaasibleDefaultHiddenConfigYaml()
+				if err := os.WriteFile(hiddenYamlConfigPath, []byte(content), 0644); err != nil {
+					log.Fatalf("Failed to write yaml config file: %v", err)
 				}
 			}
 
