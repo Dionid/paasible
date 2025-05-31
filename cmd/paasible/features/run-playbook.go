@@ -49,8 +49,10 @@ func InitRunPlaybookCmd(
 			}
 
 			// # Get playbook
-			for _, playbookId := range performance.Playbooks {
-				playbook, ok := storage.PlaybookEntity[playbookId]
+			for _, performancePlaybook := range performance.Playbooks {
+				playbookId := performancePlaybook.Project + "." + performancePlaybook.Playbook
+
+				playbook, ok := storage.Playbooks[playbookId]
 				if !ok {
 					log.Fatalf("Failed to find playbook with ID %s", args[0])
 				}

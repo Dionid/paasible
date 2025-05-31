@@ -13,12 +13,12 @@ type EntityStorage struct {
 	Auth     *AuthEntity
 	Paasible *PaasibleEntity
 
-	SSHKeys        map[string]SSHKeyEntity
-	Hosts          map[string]HostEntity
-	Inventories    map[string]InventoryEntity
-	Projects       map[string]ProjectEntity
-	PlaybookEntity map[string]PlaybookEntity
-	Performances   map[string]PerformanceEntity
+	SSHKeys      map[string]SSHKeyEntity
+	Hosts        map[string]HostEntity
+	Inventories  map[string]InventoryEntity
+	Projects     map[string]ProjectEntity
+	Playbooks    map[string]PlaybookEntity
+	Performances map[string]PerformanceEntity
 }
 
 func NameToId(name string) string {
@@ -61,13 +61,13 @@ func ParseConfigFile(storage *EntityStorage, origin *ConfigFile) error {
 			host.Id = NameToId(host.Name)
 
 			if host.Id == "" {
-				return fmt.Errorf("SSH key must have a name or ID: %v", host)
+				return fmt.Errorf("Host must have a name or ID: %v", host)
 			}
 		}
 
 		_, exist := storage.Hosts[host.Id]
 		if exist {
-			return fmt.Errorf("SSH key with ID '%s' already exists in file '%s'", host.Id, origin.FilePath)
+			return fmt.Errorf("Host with ID '%s' already exists in file '%s'", host.Id, origin.FilePath)
 		}
 
 		storage.Hosts[host.Id] = host
@@ -79,13 +79,13 @@ func ParseConfigFile(storage *EntityStorage, origin *ConfigFile) error {
 			inventory.Id = NameToId(inventory.Name)
 
 			if inventory.Id == "" {
-				return fmt.Errorf("SSH key must have a name or ID: %v", inventory)
+				return fmt.Errorf("Inventory must have a name or ID: %v", inventory)
 			}
 		}
 
 		_, exist := storage.Inventories[inventory.Id]
 		if exist {
-			return fmt.Errorf("SSH key with ID '%s' already exists in file '%s'", inventory.Id, origin.FilePath)
+			return fmt.Errorf("Inventory with ID '%s' already exists in file '%s'", inventory.Id, origin.FilePath)
 		}
 
 		storage.Inventories[inventory.Id] = inventory
@@ -97,13 +97,13 @@ func ParseConfigFile(storage *EntityStorage, origin *ConfigFile) error {
 			project.Id = NameToId(project.Name)
 
 			if project.Id == "" {
-				return fmt.Errorf("SSH key must have a name or ID: %v", project)
+				return fmt.Errorf("Project must have a name or ID: %v", project)
 			}
 		}
 
 		_, exist := storage.Projects[project.Id]
 		if exist {
-			return fmt.Errorf("SSH key with ID '%s' already exists in file '%s'", project.Id, origin.FilePath)
+			return fmt.Errorf("Project with ID '%s' already exists in file '%s'", project.Id, origin.FilePath)
 		}
 
 		storage.Projects[project.Id] = project
@@ -114,18 +114,19 @@ func ParseConfigFile(storage *EntityStorage, origin *ConfigFile) error {
 				playbook.Id = NameToId(playbook.Name)
 
 				if playbook.Id == "" {
-					return fmt.Errorf("SSH key must have a name or ID: %v", playbook)
+					return fmt.Errorf("Playbook must have a name or ID: %v", playbook)
 				}
 			}
 
+			playbook.Id = project.Id + "." + playbook.Id
 			playbook.ProjectId = project.Id
 
-			_, exist := storage.PlaybookEntity[playbook.Id]
+			_, exist := storage.Playbooks[playbook.Id]
 			if exist {
-				return fmt.Errorf("SSH key with ID '%s' already exists in file '%s'", playbook.Id, origin.FilePath)
+				return fmt.Errorf("Playbook with ID '%s' already exists in file '%s'", playbook.Id, origin.FilePath)
 			}
 
-			storage.PlaybookEntity[playbook.Id] = playbook
+			storage.Playbooks[playbook.Id] = playbook
 		}
 	}
 
@@ -165,12 +166,12 @@ func EntityStorageFromOrigin(origin *ConfigFile) (*EntityStorage, error) {
 		Auth:     origin.Auth,
 		Paasible: origin.Paasible,
 
-		SSHKeys:        make(map[string]SSHKeyEntity),
-		Hosts:          make(map[string]HostEntity),
-		Inventories:    make(map[string]InventoryEntity),
-		Projects:       make(map[string]ProjectEntity),
-		PlaybookEntity: make(map[string]PlaybookEntity),
-		Performances:   make(map[string]PerformanceEntity),
+		SSHKeys:      make(map[string]SSHKeyEntity),
+		Hosts:        make(map[string]HostEntity),
+		Inventories:  make(map[string]InventoryEntity),
+		Projects:     make(map[string]ProjectEntity),
+		Playbooks:    make(map[string]PlaybookEntity),
+		Performances: make(map[string]PerformanceEntity),
 	}
 
 	storage.UI.Origin = origin
@@ -242,16 +243,12 @@ type InventoryEntity struct {
 type ProjectEntity struct {
 	Origin *ConfigFile `mapstructure:"-"`
 
-	Id               string           `mapstructure:"id"`
-	Name             string           `mapstructure:"name"`
-	Description      string           `mapstructure:"description"`
-	Version          string           `mapstructure:"version"`
-	CliVersion       string           `mapstructure:"cli_version"`
-	Repository       string           `mapstructure:"repository"`
-	RepositoryBranch string           `mapstructure:"repository_branch"`
-	RepositoryPath   string           `mapstructure:"repository_path"`
-	LocalPath        string           `mapstructure:"local_path"`
-	Playbooks        []PlaybookEntity `mapstructure:"playbooks"`
+	Id          string           `mapstructure:"id"`
+	Name        string           `mapstructure:"name"`
+	Description string           `mapstructure:"description"`
+	Version     string           `mapstructure:"version"`
+	LocalPath   string           `mapstructure:"local_path"`
+	Playbooks   []PlaybookEntity `mapstructure:"playbooks"`
 }
 
 type PlaybookEntity struct {
@@ -274,16 +271,21 @@ type VariableSchemaEntity struct {
 	Schema      map[string]string `mapstructure:"schema"`
 }
 
+type PerformanceEntityPlaybook struct {
+	Project  string `mapstructure:"project"`
+	Playbook string `mapstructure:"playbook"`
+}
+
 type PerformanceEntity struct {
 	Origin *ConfigFile `mapstructure:"-"`
 
-	Id          string         `mapstructure:"id"`
-	ID          string         `mapstructure:"id"`
-	Name        string         `mapstructure:"name"`
-	Description string         `mapstructure:"description"`
-	Playbooks   []string       `mapstructure:"playbooks"`
-	Inventories []string       `mapstructure:"inventories"`
-	Targets     []TargetEntity `mapstructure:"targets"`
+	Id          string                      `mapstructure:"id"`
+	ID          string                      `mapstructure:"id"`
+	Name        string                      `mapstructure:"name"`
+	Description string                      `mapstructure:"description"`
+	Playbooks   []PerformanceEntityPlaybook `mapstructure:"playbooks"`
+	Inventories []string                    `mapstructure:"inventories"`
+	Targets     []TargetEntity              `mapstructure:"targets"`
 }
 
 type VariableEntity struct {
