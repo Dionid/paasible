@@ -2,6 +2,7 @@ package paasible
 
 import (
 	"fmt"
+	"io/fs"
 
 	"github.com/spf13/viper"
 )
@@ -35,7 +36,12 @@ func ParseConfig(
 
 	// ## Viper reads all the variables from env file and log error if any found
 	if err := yamlConfigViper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		_, ok := err.(viper.ConfigFileNotFoundError)
+		if !ok {
+			_, ok = err.(*fs.PathError)
+		}
+
+		if !ok {
 			return nil, fmt.Errorf("Error reading yaml config: %w", err)
 		}
 	}

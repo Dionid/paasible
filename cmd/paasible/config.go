@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
 	"strings"
 
 	"github.com/Dionid/paasible/libs/paasible"
@@ -31,9 +32,7 @@ func initConfig(
 	// # Env
 	envConfigViper := viper.New()
 
-	// fmt.Println("yaml config: ", yamlConfig)
-
-	if yamlConfig.Paasible.CliEnvPath == "" {
+	if yamlConfig.Paasible == nil || yamlConfig.Paasible.CliEnvPath == "" {
 		envConfigViper.SetConfigFile("./paasible.env")
 	} else {
 		// ## Tell viper the path/location of your env file. If it is root just add "."
@@ -47,7 +46,12 @@ func initConfig(
 
 	// ## Viper reads all the variables from env file and log error if any found
 	if err := envConfigViper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		_, ok := err.(viper.ConfigFileNotFoundError)
+		if !ok {
+			_, ok = err.(*fs.PathError)
+		}
+
+		if !ok {
 			return nil, fmt.Errorf("Error while reading env config: %w", err)
 		}
 	}
