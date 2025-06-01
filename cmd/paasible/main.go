@@ -11,6 +11,7 @@ import (
 	"github.com/Dionid/paasible/libs/paasible"
 	"github.com/fsnotify/fsnotify"
 	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/cmd"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/mails"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
@@ -104,6 +105,7 @@ func main() {
 
 	// # Parse paasible data folder
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
+		// # Parse paasible data folder
 		err := features.ParsePaasibleData(
 			app,
 			path.Join(paasibleCliPwd, storage.Paasible.DataFolderPath),
@@ -141,7 +143,7 @@ func main() {
 					)
 
 					if err != nil {
-						app.Logger().Error("Upsert paasible run result", err)
+						app.Logger().Error("Upsert paasible run result", "error", err)
 					}
 
 					app.Logger().Debug("Upserted new json file")
@@ -150,13 +152,13 @@ func main() {
 			// watch for errors
 			case err := <-watcher.Errors:
 				{
-					app.Logger().Error("Error listening files", err)
+					app.Logger().Error("Error listening files", "error", err)
 				}
 			}
 		}
 	}()
 
-	// out of the box fsnotify can watch a single file, or a single directory
+	// ## out of the box fsnotify can watch a single file, or a single directory
 	if err := watcher.Add(
 		path.Join(
 			paasibleDataFolderPath,
@@ -166,7 +168,19 @@ func main() {
 		log.Fatal("Can't add file watcher", err)
 	}
 
-	if err := app.Start(); err != nil {
-		log.Fatal("App start: ", err)
+	// # Map ui command
+	uiCmd := cmd.NewServeCommand(
+		app,
+		true,
+	)
+	uiCmd.Use = "ui [domain(s)]"
+	app.RootCmd.AddCommand(uiCmd)
+
+	// # Add superuser cmd
+	app.RootCmd.AddCommand(cmd.NewSuperuserCommand(app))
+
+	// # Start app
+	if err := app.Execute(); err != nil {
+		log.Fatal("App start error: ", err)
 	}
 }

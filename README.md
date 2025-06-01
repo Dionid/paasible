@@ -1,8 +1,16 @@
 # paasible
 
-Cli and UI for `ansible` to run playbooks, store and search run results.
+Cli, UI & code management for `ansible`.
 
 ![paasible UI](./ui.png)
+
+# Features
+
+1. Run `ansible-playbook` and store results in `.json` files
+1. Query and filter results using web UI
+1. Separate `playbooks` into `projects` and keep track of them
+1. Expand information about every `host` (deployed `playbooks`, connected `ssh_keys`, etc.)
+1. Per playbbok variables validation
 
 # Setup
 
@@ -27,11 +35,11 @@ When you need just to fallback to original `ansible-playbook` command, but want 
 
 ## `paasible init` – initialization
 
-Creates `paasible.yaml` and `paasible.hidden.yaml` files
+Creates `paasible.yaml` and `paasible.hidden.yaml` files.
 
-## `paasible serve` – web UI
+## `paasible ui` – web UI
 
-1. Run `paasible serve`
+1. Run `paasible ui`
 1. Create first admin user.
 1. Go to `http://localhost:PORT/_/` into `run_result` table and search by filters.
 
@@ -50,10 +58,6 @@ that included into `paasible.yaml`.
 
 # Dictionary
 
-1. `paasible cli` – terminal application to
-    1. Init paasible config
-    1. Run performances
-    1. Serve paasible UI
 1. `User` – this is arbitrary field that you use to understand who ran the playbook,
     stored in `paasible.hidden.yaml`*
 1. `Machine` – this is arbitrary field that you use to understand on what machine the playbook
@@ -88,6 +92,7 @@ Main goal: create `.yaml` configuration for paasible, that describes: `ssh_keys`
 1. ~~Make ability to include other `.yaml` files into `paasible.yaml`~~
 1. Add `-c` as config path
 1. Add `variable_schemas` and `variables` and test with `paasible run`
+1. Add `paasible validate` command to validate `paasible.yaml` configuration
 1. Add `expand <entity_name>` command to show relationships between entities
 
 ## Stage 3. UI
@@ -104,14 +109,25 @@ MG: edit playbooks locally, but run them on remote machines, so you can use Paas
 
 1. ...
 
-## Stage X. ???
+## Stage 5. Crons
 
-MG: ???
+MG: create crons for performances, so you can run them periodically.
+
+1. ...
+
+## Stage 6. Notifications
+
+MG: send notifications about performance and cron results, errors, etc.
+
+1. ...
+
+## Stage X. Terraform support
+
+MG: Add ability to run `terraform` commands and store results in `.json` files, so you can query them in the same way as `ansible-playbook`.
 
 1. ...
 
 ## Aidtional
 
 1. Auto install `ansible-playbook` if it is not installed
-1. Add `paasible create` command to create entities like `ssh_keys`, `hosts`, `inventories`, `projects`, `playbooks`, `performances`, `variable_schemas` and `variables` from command line
 1. ...
