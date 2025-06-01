@@ -15,6 +15,7 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/mails"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
+	"github.com/spf13/pflag"
 )
 
 func main() {
@@ -23,23 +24,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	yamlPath, ok := os.LookupEnv("PAASIBLE_CONFIG_PATH")
+	// # Paasible root config path
+	// ## Take from env
+	paasibleRootConfigPathFromEnv, ok := os.LookupEnv("PAASIBLE_CONFIG_PATH")
 	if ok == false {
-		yamlPath = path.Join(
-			paasibleCliPwd,
-			"./paasible.yaml",
-		)
+		paasibleRootConfigPathFromEnv = "./paasible.yaml"
 	}
 
-	yamlConfig, err := initConfig(
-		yamlPath,
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// ## Take from command line flags
+	paasibleRootConfigPathP := pflag.StringP("config", "c", paasibleRootConfigPathFromEnv, "Path to paasible.yaml config file")
+	pflag.Parse()
+	paasibleRootConfigPath := *paasibleRootConfigPathP
 
-	storage, err := paasible.EntityStorageFromOrigin(
-		yamlConfig,
+	// ## Parse paasible config file
+	paasibleRootConfig, err := newConfigFromPath(
+		paasibleRootConfigPath,
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -47,8 +46,16 @@ func main() {
 
 	// # Paasible config folder path
 	paasibleRootConfigFolderPath := path.Dir(
-		yamlPath,
+		paasibleRootConfigPath,
 	)
+
+	// # Init storage from paasible config file
+	storage, err := paasible.EntityStorageFromOrigin(
+		paasibleRootConfig,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// # Paasible data folder path
 	paasibleDataFolderPath := path.Join(
@@ -95,7 +102,7 @@ func main() {
 
 	features.InitInitCmd(
 		app,
-		yamlPath,
+		paasibleRootConfigPath,
 	)
 
 	// # Send verification email on sign-up

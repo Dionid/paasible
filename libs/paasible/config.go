@@ -3,6 +3,7 @@ package paasible
 import (
 	"fmt"
 	"io/fs"
+	"path"
 
 	"github.com/spf13/viper"
 )
@@ -57,8 +58,15 @@ func ParseConfig(
 	}
 
 	// ## Load includes
-	for _, includePath := range yamlConfig.IncludePaths {
-		includedConfig, err := ParseConfig(includePath)
+	for _, includePathRaw := range yamlConfig.IncludePaths {
+		includePath := path.Join(
+			path.Dir(yamlConfig.FilePath),
+			includePathRaw,
+		)
+
+		includedConfig, err := ParseConfig(
+			includePath,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("Error parsing included config '%s': %w", includePath, err)
 		}

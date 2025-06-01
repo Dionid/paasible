@@ -6,7 +6,7 @@ import (
 )
 
 // Call to load the variables from env
-func initConfig(
+func newConfigFromPath(
 	yamlConfigPath string,
 ) (*paasible.ConfigFile, error) {
 	// # Read os env
