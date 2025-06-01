@@ -7,10 +7,17 @@ Cli, UI & code management for `ansible`.
 # Features
 
 1. Run `ansible-playbook` and store results in `.json` files
-1. Query and filter results using web UI
-1. Separate `playbooks` into `projects` and keep track of them
+1. Inrepository storage of `ansible-playbook` results, to share them with your team
+1. Web UI for quering and filtering results of `ansible-playbook` runs
+1. Manage hundreds and thousand of `playbooks` in one place, using `paasible projects`
 1. Expand information about every `host` (deployed `playbooks`, connected `ssh_keys`, etc.)
-1. Per playbbok variables validation
+1. Variables validations
+
+# Use cases
+
+1. Run `ansible-playbook` and store results in `.json` files, so you and your colleges can query them later
+1. Use it in CI/CD to store results of `ansible-playbook` runs and query them later
+1. Manage `ansible` playbooks, projects, hosts, ssh keys, inventories, performances and variables in much more convenient way than inventories and playbooks files
 
 # Setup
 
@@ -69,12 +76,6 @@ that included into `paasible.yaml`.
 
 * – you can name it however you want, but keep them unique per user and per machine
 
-# Special thanks
-
-To project called pocketbase that is used for UI and sqlite DB. It is a great project and I am using it for my own projects. You can find it here:
-
-https://pocketbase.io
-
 # Roadmap
 
 ## (DONE) Stage 1. Save and query ansible-playbook result
@@ -131,3 +132,24 @@ MG: Add ability to run `terraform` commands and store results in `.json` files, 
 
 1. Auto install `ansible-playbook` if it is not installed
 1. ...
+
+# Special thanks
+
+To project called pocketbase that is used for UI and sqlite DB. It is a great project and I am using it for my own projects. You can find it here:
+
+https://pocketbase.io
+
+# FAQ
+
+## vs SemaphoreUI
+
+Short answer:
+
+- Paasible extends `ansible-playbook` as cli utility and adds web UI.
+- SemaphoreUI is a application that is used to manage runs of ansible, bash scripts, terraform and other tools.
+
+They are used for different purposes, but also can be used together.
+
+## What `frontend` folder for?
+
+Right now it is used for UI development, but in future it will be used for UI and CLI development.
