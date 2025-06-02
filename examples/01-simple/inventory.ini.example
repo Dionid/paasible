@@ -1,5 +1,5 @@
 [target]
-IP ansible_user=root ansible_ssh_private_key_file=~/.ssh/private_key
+IP ansible_user=root ansible_ssh_private_key_file=./hidden/id_rsa
 
 [target:vars]
 destination='/app'

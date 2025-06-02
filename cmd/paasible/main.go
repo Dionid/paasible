@@ -44,7 +44,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// TODO: decide which is better
 	// # Paasible config folder path
+	// paasibleRootConfigFolderPath := path.Join(
+	// 	paasibleCliPwd,
+	// 	path.Dir(
+	// 		paasibleRootConfigPath,
+	// 	),
+	// )
 	paasibleRootConfigFolderPath := path.Dir(
 		paasibleRootConfigPath,
 	)

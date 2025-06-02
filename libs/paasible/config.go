@@ -22,7 +22,6 @@ type ConfigFile struct {
 	Hosts        []HostEntity        `mapstructure:"hosts"`
 	Inventories  []InventoryEntity   `mapstructure:"inventories"`
 	Projects     []ProjectEntity     `mapstructure:"projects"`
-	Playbooks    []PlaybookEntity    `mapstructure:"playbooks"`
 	Performances []PerformanceEntity `mapstructure:"performances"`
 }
 

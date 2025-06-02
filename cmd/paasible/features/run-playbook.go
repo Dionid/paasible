@@ -50,95 +50,95 @@ func InitRunPlaybookCmd(
 
 			// # Get playbook
 			for _, performancePlaybook := range performance.Playbooks {
-				playbookId := performancePlaybook.Project + "." + performancePlaybook.Playbook
+				playbookId := performancePlaybook.ProjectId + "." + performancePlaybook.PlaybookId
 
 				playbook, ok := storage.Playbooks[playbookId]
 				if !ok {
 					log.Fatalf("Failed to find playbook with ID %s", args[0])
 				}
 
-				// # Get playbook project
-				project, ok := storage.Projects[playbook.Project]
+				if playbook.ProjectId != performancePlaybook.ProjectId {
+					log.Fatalf("Playbook %s does not belong to performance %s", playbookId, performanceId)
+				}
+
+				// # Get project
+				project, ok := storage.Projects[playbook.ProjectId]
 				if !ok {
-					// ## Use default project if not found
-					project = paasible.ProjectEntity{
-						Id:        playbook.Project,
-						Name:      "default",
-						LocalPath: ".",
-					}
-					// log.Fatalf("Failed to find project with ID %s", playbook.Project)
+					log.Fatalf("Failed to find project with ID %s", playbook.ProjectId)
 				}
 
 				// # Create inventory
 				inventoriesPaths := make([]string, 0)
 
 				// ## Add Invetories
-				for _, inventoryId := range performance.Inventories {
+				for _, inventoryId := range performance.InventoriesIds {
 					inventory, ok := storage.Inventories[inventoryId]
 					if !ok {
 						log.Fatalf("Failed to find inventory with ID %s", inventoryId)
 					}
 
-					// # Check if the inventory file exists
-					fullInventoryPath := path.Join(
-						paasibleRootConfigFolderPath,
-						inventory.Path,
-					)
-
-					if _, err := os.Stat(fullInventoryPath); os.IsNotExist(err) {
-						log.Fatalf("Inventory file %s does not exist", fullInventoryPath)
-					}
-
-					inventoriesPaths = append(inventoriesPaths, fullInventoryPath)
-				}
-
-				// ## Generate inventories based on Targets
-				if len(performance.Targets) != 0 {
-					inventoryByGroup := make(map[string]string)
-
-					for _, playbookTarget := range performance.Targets {
-						targetSshKey, ok := storage.SSHKeys[playbookTarget.SSHKey]
-						if !ok {
-							log.Fatalf("Failed to find SSH key with ID %s", playbookTarget.SSHKey)
-						}
-
-						host, ok := storage.Hosts[playbookTarget.Host]
-						if !ok {
-							log.Fatalf("Failed to find host with ID %s", playbookTarget.Host)
-						}
-
-						// # Create ssh file
-						pathToSshKey := path.Join(
+					if inventory.Path != "" {
+						// # Check if the inventory file exists
+						fullInventoryPath := path.Join(
 							paasibleRootConfigFolderPath,
-							targetSshKey.PrivatePath,
+							inventory.Path,
 						)
 
-						group := "all"
-						if playbookTarget.Group != "" {
-							group = playbookTarget.Group
+						if _, err := os.Stat(fullInventoryPath); os.IsNotExist(err) {
+							log.Fatalf("Inventory file %s does not exist", fullInventoryPath)
 						}
 
-						inventoryByGroup[group] = fmt.Sprintf(
-							`%s ansible_host=%s ansible_ssh_user=%s ansible_ssh_private_key_file=%s`,
-							host.Name,
-							host.Address,
-							playbookTarget.User,
-							pathToSshKey,
-						)
+						inventoriesPaths = append(inventoriesPaths, fullInventoryPath)
+
+						continue
 					}
 
 					inventoryContent := ""
 
-					for group, hosts := range inventoryByGroup {
-						inventoryContent += fmt.Sprintf("[%s]\n%s\n\n", group, hosts)
+					for groupName, group := range inventory.Groups {
+						inventoryContent += fmt.Sprintf("[%s]\n", groupName)
+
+						for _, groupHost := range group.Hosts {
+							targetSshKey, ok := storage.SSHKeys[groupHost.SSHKey]
+							if !ok {
+								log.Fatalf("Failed to find SSH key with ID %s", groupHost.SSHKey)
+							}
+
+							host, ok := storage.Hosts[groupHost.Host]
+							if !ok {
+								log.Fatalf("Failed to find host with ID %s", host.Name)
+							}
+
+							// # Create ssh file
+							pathToSshKey := path.Join(
+								paasibleRootConfigFolderPath,
+								targetSshKey.PrivatePath,
+							)
+
+							inventoryContent += fmt.Sprintf(
+								"%s ansible_host=%s ansible_port=%d ansible_ssh_user=%s ansible_ssh_private_key_file=%s\n",
+								host.Name,
+								host.Address,
+								groupHost.Port,
+								groupHost.User,
+								pathToSshKey,
+							)
+						}
+
+						inventoryContent += fmt.Sprintf("\n")
 					}
 
+					// # Create inventory file
 					if inventoryContent != "" {
-						// # Create inventory file
+						inventoryFileName := fmt.Sprintf(
+							"inventory.%s.paasible.ini",
+							inventory.Id,
+						)
+
 						inventoryFilePath := path.Join(
 							paasibleRootConfigFolderPath,
 							project.LocalPath,
-							"inventory.paasible.ini",
+							inventoryFileName,
 						)
 						err := os.WriteFile(inventoryFilePath, []byte(inventoryContent), 0644)
 						if err != nil {

@@ -95,6 +95,7 @@ Main goal: create `.yaml` configuration for paasible, that describes: `ssh_keys`
 1. Add `variable_schemas` and `variables` and test with `paasible run`
 1. Add `paasible validate` command to validate `paasible.yaml` configuration
 1. Add `expand <entity_name>` command to show relationships between entities
+1. `variables_maps` extend
 
 ## Stage 3. UI
 
