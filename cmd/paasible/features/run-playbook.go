@@ -116,63 +116,38 @@ func InitRunPlaybookCmd(
 							)
 
 							inventoryContent += fmt.Sprintf(
-								"%s ansible_host=%s ansible_port=%d ansible_ssh_user=%s ansible_ssh_private_key_file=%s\n",
+								"%s ansible_host=%s ansible_port=%d ansible_ssh_user=%s ansible_ssh_private_key_file=%s",
 								host.Name,
 								host.Address,
 								groupHost.Port,
 								groupHost.User,
 								pathToSshKey,
 							)
+
+							resultVariables, err := paasible.MergeVariables(
+								storage,
+								groupHost.ExtendableByVariables,
+							)
+							if err != nil {
+								log.Fatalf("Failed to merge variables for group %s: %v", groupName, err)
+							}
+
+							for key, value := range resultVariables {
+								inventoryContent += fmt.Sprintf(" %s=%s", key, value)
+							}
+
+							inventoryContent += fmt.Sprintf("\n")
 						}
 
 						inventoryContent += fmt.Sprintf("\n")
 
 						for groupName, group := range inventory.Groups {
-							resultVariables := make(map[string]string)
-
-							for _, mapId := range group.VariablesMapsIds {
-								variableMap, ok := storage.VariablesMaps[mapId]
-								if !ok {
-									log.Fatalf("Failed to find variable map with ID %s", mapId)
-								}
-
-								for variableKey, variable := range variableMap.VariablesIds {
-									variableEnt, ok := storage.Variables[variable]
-									if !ok {
-										log.Fatalf("Failed to find variable with ID %s", variableKey)
-									}
-
-									if resultVariables[variableKey] != "" {
-										log.Printf("Variable %s already exists in group %s, skipping", variableKey, groupName)
-									}
-									resultVariables[variableKey] = variableEnt.Value
-								}
-
-								for variableKey, variable := range variableMap.Variables {
-									if resultVariables[variableKey] != "" {
-										log.Printf("Variable %s already exists in group %s, skipping", variableKey, groupName)
-									}
-									resultVariables[variableKey] = variable.Value
-								}
-							}
-
-							for variableKey, variable := range group.VariablesIds {
-								variableEnt, ok := storage.Variables[variable]
-								if !ok {
-									log.Fatalf("Failed to find variable with ID %s", variableKey)
-								}
-
-								if resultVariables[variableKey] != "" {
-									log.Printf("Variable %s already exists in group %s, skipping", variableKey, groupName)
-								}
-								resultVariables[variableKey] = variableEnt.Value
-							}
-
-							for variableKey, variable := range group.Variables {
-								if resultVariables[variableKey] != "" {
-									log.Printf("Variable %s already exists in group %s, skipping", variableKey, groupName)
-								}
-								resultVariables[variableKey] = variable.Value
+							resultVariables, err := paasible.MergeVariables(
+								storage,
+								group.ExtendableByVariables,
+							)
+							if err != nil {
+								log.Fatalf("Failed to merge variables for group %s: %v", groupName, err)
 							}
 
 							if len(resultVariables) != 0 {
