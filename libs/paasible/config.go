@@ -18,11 +18,13 @@ type ConfigFile struct {
 	UI       *UIEntity   `mapstructure:"ui"`
 	Auth     *AuthEntity `mapstructure:"auth"`
 
-	SshKeys      []SSHKeyEntity      `mapstructure:"ssh_keys"`
-	Hosts        []HostEntity        `mapstructure:"hosts"`
-	Inventories  []InventoryEntity   `mapstructure:"inventories"`
-	Projects     []ProjectEntity     `mapstructure:"projects"`
-	Performances []PerformanceEntity `mapstructure:"performances"`
+	SshKeys       []SSHKeyEntity       `mapstructure:"ssh_keys"`
+	Hosts         []HostEntity         `mapstructure:"hosts"`
+	Variables     []VariableEntity     `mapstructure:"variables"`
+	VariablesMaps []VariablesMapEntity `mapstructure:"variables_maps"`
+	Inventories   []InventoryEntity    `mapstructure:"inventories"`
+	Projects      []ProjectEntity      `mapstructure:"projects"`
+	Performances  []PerformanceEntity  `mapstructure:"performances"`
 }
 
 func ParseConfig(

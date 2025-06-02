@@ -126,6 +126,67 @@ func InitRunPlaybookCmd(
 						}
 
 						inventoryContent += fmt.Sprintf("\n")
+
+						for groupName, group := range inventory.Groups {
+							resultVariables := make(map[string]string)
+
+							for _, mapId := range group.VariablesMapsIds {
+								variableMap, ok := storage.VariablesMaps[mapId]
+								if !ok {
+									log.Fatalf("Failed to find variable map with ID %s", mapId)
+								}
+
+								for variableKey, variable := range variableMap.VariablesIds {
+									variableEnt, ok := storage.Variables[variable]
+									if !ok {
+										log.Fatalf("Failed to find variable with ID %s", variableKey)
+									}
+
+									if resultVariables[variableKey] != "" {
+										log.Printf("Variable %s already exists in group %s, skipping", variableKey, groupName)
+									}
+									resultVariables[variableKey] = variableEnt.Value
+								}
+
+								for variableKey, variable := range variableMap.Variables {
+									if resultVariables[variableKey] != "" {
+										log.Printf("Variable %s already exists in group %s, skipping", variableKey, groupName)
+									}
+									resultVariables[variableKey] = variable.Value
+								}
+							}
+
+							for variableKey, variable := range group.VariablesIds {
+								variableEnt, ok := storage.Variables[variable]
+								if !ok {
+									log.Fatalf("Failed to find variable with ID %s", variableKey)
+								}
+
+								if resultVariables[variableKey] != "" {
+									log.Printf("Variable %s already exists in group %s, skipping", variableKey, groupName)
+								}
+								resultVariables[variableKey] = variableEnt.Value
+							}
+
+							for variableKey, variable := range group.Variables {
+								if resultVariables[variableKey] != "" {
+									log.Printf("Variable %s already exists in group %s, skipping", variableKey, groupName)
+								}
+								resultVariables[variableKey] = variable.Value
+							}
+
+							if len(resultVariables) != 0 {
+								inventoryContent += fmt.Sprintf("[%s:vars]\n", groupName)
+							}
+
+							for key, value := range resultVariables {
+								inventoryContent += fmt.Sprintf("%s=%s\n", key, value)
+							}
+
+							if len(resultVariables) != 0 {
+								inventoryContent += fmt.Sprintf("\n")
+							}
+						}
 					}
 
 					// # Create inventory file

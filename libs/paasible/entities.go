@@ -13,12 +13,14 @@ type EntityStorage struct {
 	Auth     *AuthEntity
 	Paasible *PaasibleEntity
 
-	SSHKeys      map[string]SSHKeyEntity
-	Hosts        map[string]HostEntity
-	Inventories  map[string]InventoryEntity
-	Projects     map[string]ProjectEntity
-	Playbooks    map[string]PlaybookEntity
-	Performances map[string]PerformanceEntity
+	SSHKeys       map[string]SSHKeyEntity
+	Hosts         map[string]HostEntity
+	Variables     map[string]VariableEntity
+	VariablesMaps map[string]VariablesMapEntity
+	Inventories   map[string]InventoryEntity
+	Projects      map[string]ProjectEntity
+	Playbooks     map[string]PlaybookEntity
+	Performances  map[string]PerformanceEntity
 }
 
 func NameToId(name string) string {
@@ -81,6 +83,42 @@ func ParseConfigFile(storage *EntityStorage, origin *ConfigFile) error {
 		}
 
 		storage.Hosts[host.Id] = host
+	}
+
+	for _, variable := range origin.Variables {
+		variable.Origin = origin
+		if variable.Id == "" {
+			variable.Id = NameToId(variable.Name)
+
+			if variable.Id == "" {
+				return fmt.Errorf("variable must have a name or ID: %v", variable)
+			}
+		}
+
+		_, exist := storage.Variables[variable.Id]
+		if exist {
+			return fmt.Errorf("variable with ID '%s' already exists in file '%s'", variable.Id, origin.FilePath)
+		}
+
+		storage.Variables[variable.Id] = variable
+	}
+
+	for _, variableMap := range origin.VariablesMaps {
+		variableMap.Origin = origin
+		if variableMap.Id == "" {
+			variableMap.Id = NameToId(variableMap.Name)
+
+			if variableMap.Id == "" {
+				return fmt.Errorf("variableMap must have a name or ID: %v", variableMap)
+			}
+		}
+
+		_, exist := storage.VariablesMaps[variableMap.Id]
+		if exist {
+			return fmt.Errorf("variableMap with ID '%s' already exists in file '%s'", variableMap.Id, origin.FilePath)
+		}
+
+		storage.VariablesMaps[variableMap.Id] = variableMap
 	}
 
 	for _, inventory := range origin.Inventories {
@@ -176,12 +214,14 @@ func EntityStorageFromOrigin(origin *ConfigFile) (*EntityStorage, error) {
 		Auth:     origin.Auth,
 		Paasible: origin.Paasible,
 
-		SSHKeys:      make(map[string]SSHKeyEntity),
-		Hosts:        make(map[string]HostEntity),
-		Inventories:  make(map[string]InventoryEntity),
-		Projects:     make(map[string]ProjectEntity),
-		Playbooks:    make(map[string]PlaybookEntity),
-		Performances: make(map[string]PerformanceEntity),
+		SSHKeys:       make(map[string]SSHKeyEntity),
+		Hosts:         make(map[string]HostEntity),
+		Variables:     make(map[string]VariableEntity),
+		VariablesMaps: make(map[string]VariablesMapEntity),
+		Inventories:   make(map[string]InventoryEntity),
+		Projects:      make(map[string]ProjectEntity),
+		Playbooks:     make(map[string]PlaybookEntity),
+		Performances:  make(map[string]PerformanceEntity),
 	}
 
 	storage.Paasible.Origin = origin
@@ -252,6 +292,17 @@ type VariableEntity struct {
 	Value string `mapstructure:"value"`
 }
 
+type VariablesMapEntity struct {
+	Origin *ConfigFile `mapstructure:"-"`
+
+	Id          string `mapstructure:"id"`
+	Name        string `mapstructure:"name"`
+	Description string `mapstructure:"description"`
+
+	Variables    map[string]VariableEntity `mapstructure:"variables"`
+	VariablesIds map[string]string         `mapstructure:"variables_ids"`
+}
+
 type VariableGroupEntity struct {
 	Origin *ConfigFile `mapstructure:"-"`
 
@@ -281,7 +332,7 @@ type GroupHostEntity struct {
 	User        string `mapstructure:"user"`
 	Port        int    `mapstructure:"port"`
 
-	ExtendableByVariables
+	ExtendableByVariables `mapstructure:",squash"`
 }
 
 type GroupEntity struct {
@@ -290,7 +341,7 @@ type GroupEntity struct {
 	Description string            `mapstructure:"description"`
 	Hosts       []GroupHostEntity `mapstructure:"hosts"`
 
-	ExtendableByVariables
+	ExtendableByVariables `mapstructure:",squash"`
 }
 
 // ## Inventory
