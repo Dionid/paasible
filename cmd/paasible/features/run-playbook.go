@@ -58,9 +58,15 @@ func InitRunPlaybookCmd(
 				}
 
 				// # Get playbook project
-				project, ok := storage.Projects[playbook.ProjectId]
+				project, ok := storage.Projects[playbook.Project]
 				if !ok {
-					log.Fatalf("Failed to find project with ID %s", playbook.ProjectId)
+					// ## Use default project if not found
+					project = paasible.ProjectEntity{
+						Id:        playbook.Project,
+						Name:      "default",
+						LocalPath: ".",
+					}
+					// log.Fatalf("Failed to find project with ID %s", playbook.Project)
 				}
 
 				// # Create inventory

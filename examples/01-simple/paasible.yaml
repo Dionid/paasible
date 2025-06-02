@@ -26,12 +26,20 @@ projects:
         description: A simple example of a Paasible project
         path: ./playbook.yml
 
+# Describe project playbooks
+playbooks:
+  - id: simple_no_project_playbook
+    name: Simple playbook
+    description: A simple example of a Paasible project
+    path: ./playbook.yml
+
 # Describe the performances (playbook executions)
 performances:
   - id: simple_performance
     name: Simple performance
     description: A simple performance that runs the first playbook.
     playbooks:
+      - playbook: simple_no_project_playbook
       - project: simple_project
         playbook: simple_playbook
     inventories:

@@ -129,7 +129,7 @@ func ParseConfigFile(storage *EntityStorage, origin *ConfigFile) error {
 			}
 
 			playbook.Id = project.Id + "." + playbook.Id
-			playbook.ProjectId = project.Id
+			playbook.Project = project.Id
 
 			_, exist := storage.Playbooks[playbook.Id]
 			if exist {
@@ -138,6 +138,26 @@ func ParseConfigFile(storage *EntityStorage, origin *ConfigFile) error {
 
 			storage.Playbooks[playbook.Id] = playbook
 		}
+	}
+
+	for _, playbook := range origin.Playbooks {
+		playbook.Origin = origin
+		if playbook.Id == "" {
+			playbook.Id = NameToId(playbook.Name)
+
+			if playbook.Id == "" {
+				return fmt.Errorf("playbook must have a name or ID: %v", playbook)
+			}
+		}
+
+		playbook.Id = playbook.Project + "." + playbook.Id
+
+		_, exist := storage.Inventories[playbook.Id]
+		if exist {
+			return fmt.Errorf("playbook with ID '%s' already exists in file '%s'", playbook.Id, origin.FilePath)
+		}
+
+		storage.Playbooks[playbook.Id] = playbook
 	}
 
 	for _, performance := range origin.Performances {
@@ -267,7 +287,7 @@ type PlaybookEntity struct {
 	Name        string `mapstructure:"name"`
 	Description string `mapstructure:"description"`
 	Path        string `mapstructure:"path"`
-	ProjectId   string `mapstructure:"project_id"`
+	Project     string `mapstructure:"project"`
 }
 
 type VariableSchemaEntity struct {
